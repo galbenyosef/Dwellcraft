@@ -12,7 +12,8 @@
     "lint": "oxlint",
     "format": "oxfmt",
     "test": "node tests/run.mjs",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build:vercel": "node scripts/build-vercel.mjs"
   },
   "dependencies": {
     "@babylonjs/core": "^9.0.0",

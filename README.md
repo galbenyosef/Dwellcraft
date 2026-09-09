@@ -95,6 +95,12 @@ npm run build      # 正式构建
 npm start          # 本地运行构建后的Worker
 ```
 
+### 部署到 Vercel
+
+在 Vercel 导入此 GitHub 仓库，项目根目录保持默认。仓库中的 `vercel.json` 已设置安装命令 `npm ci`、构建命令 `npm run build:vercel` 和输出目录 `dist/client`；Framework Preset 使用 **Other**，Node.js 使用 **24.x**。
+
+也可在完成 Vercel CLI 登录后运行 `npx vercel --prod`。该构建生成静态页面和浏览器资源，不需要 Cloudflare Worker。线上作品仍保存在访问者的浏览器中。
+
 ### 操作指南
 
 | 操作 | 使用方式 |
@@ -150,6 +156,12 @@ npm run lint       # Project lint checks
 npm run build      # Production build
 npm start          # Run the built Worker locally
 ```
+
+### Deploy to Vercel
+
+Import this GitHub repository into Vercel using the default project root. The included `vercel.json` sets `npm ci` as the install command, `npm run build:vercel` as the build command and `dist/client` as the output directory. Select **Other** as the Framework Preset and **24.x** as the Node.js version.
+
+Alternatively, sign in with the Vercel CLI and run `npx vercel --prod`. This build exports static pages and browser assets without a Cloudflare Worker. Designs remain stored locally in each visitor’s browser.
 
 ### Controls
 
