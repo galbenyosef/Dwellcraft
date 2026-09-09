@@ -1,0 +1,1132 @@
+{
+  "version": "1.0",
+  "units": "m",
+  "coordinate_system": "2D x east, y south; 3D x east, y up, z south",
+  "area_basis": "gross planning zones including walls; apartment balcony included in game footprint",
+  "floors": [
+    {
+      "id": "home100",
+      "title": "01 / 奶油日光小家",
+      "subtitle": "100㎡ · 三室两厅 · 2.8m 层高",
+      "w": 10,
+      "h": 10,
+      "rooms": [
+        {
+          "id": "bed2",
+          "name": "次卧",
+          "x": 0,
+          "y": 0,
+          "w": 3.3,
+          "h": 4,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 13.2
+        },
+        {
+          "id": "flex",
+          "name": "书房 / 客卧",
+          "x": 3.3,
+          "y": 0,
+          "w": 3.3,
+          "h": 4,
+          "kind": "sleep",
+          "furniture": "desk",
+          "area": 13.2
+        },
+        {
+          "id": "master",
+          "name": "主卧",
+          "x": 6.6,
+          "y": 0,
+          "w": 3.4,
+          "h": 4,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 13.6
+        },
+        {
+          "id": "hall",
+          "name": "玄关 · 分流过道",
+          "x": 0,
+          "y": 4,
+          "w": 10,
+          "h": 1.2,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 12.0
+        },
+        {
+          "id": "dining",
+          "name": "餐厅",
+          "x": 2.5,
+          "y": 5.2,
+          "w": 2.6,
+          "h": 4.8,
+          "kind": "social",
+          "furniture": "table",
+          "area": 12.48
+        },
+        {
+          "id": "living",
+          "name": "客厅",
+          "x": 5.1,
+          "y": 5.2,
+          "w": 4.9,
+          "h": 4,
+          "kind": "social",
+          "furniture": "sofa",
+          "area": 19.6
+        },
+        {
+          "id": "balcony",
+          "name": "阳台",
+          "x": 5.1,
+          "y": 9.2,
+          "w": 4.9,
+          "h": 0.8,
+          "kind": "outside",
+          "furniture": null,
+          "area": 3.92
+        },
+        {
+          "id": "bath",
+          "name": "卫生间",
+          "x": 0,
+          "y": 5.2,
+          "w": 2.5,
+          "h": 2.2,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 5.5
+        },
+        {
+          "id": "kitchen",
+          "name": "厨房",
+          "x": 0,
+          "y": 7.4,
+          "w": 2.5,
+          "h": 2.6,
+          "kind": "service",
+          "furniture": "kitchen",
+          "area": 6.5
+        }
+      ],
+      "doors": [
+        {
+          "a": "outside",
+          "b": "hall",
+          "x": 0,
+          "y": 4.6,
+          "axis": "v",
+          "width": 1.2
+        },
+        {
+          "a": "hall",
+          "b": "bed2",
+          "x": 2.45,
+          "y": 4,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "flex",
+          "x": 4.1,
+          "y": 4,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "master",
+          "x": 7.45,
+          "y": 4,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "dining",
+          "x": 3.8,
+          "y": 5.2,
+          "axis": "h",
+          "width": 1.6
+        },
+        {
+          "a": "hall",
+          "b": "living",
+          "x": 7,
+          "y": 5.2,
+          "axis": "h",
+          "width": 1.8
+        },
+        {
+          "a": "dining",
+          "b": "living",
+          "x": 5.1,
+          "y": 7.2,
+          "axis": "v",
+          "width": 2.8
+        },
+        {
+          "a": "living",
+          "b": "balcony",
+          "x": 7.5,
+          "y": 9.2,
+          "axis": "h",
+          "width": 2.2
+        },
+        {
+          "a": "hall",
+          "b": "bath",
+          "x": 1.25,
+          "y": 5.2,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "dining",
+          "b": "kitchen",
+          "x": 2.5,
+          "y": 8.7,
+          "axis": "v",
+          "width": 1.2
+        }
+      ],
+      "start": "hall",
+      "image": "home-100.png"
+    },
+    {
+      "id": "home200",
+      "title": "02 / 林景大平层",
+      "subtitle": "200㎡ · 四室两厅 · 3.0m 层高",
+      "w": 20,
+      "h": 10,
+      "rooms": [
+        {
+          "id": "bed2",
+          "name": "次卧 A",
+          "x": 0,
+          "y": 0,
+          "w": 3.8,
+          "h": 4.2,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 15.96
+        },
+        {
+          "id": "bed3",
+          "name": "次卧 B",
+          "x": 3.8,
+          "y": 0,
+          "w": 3.8,
+          "h": 4.2,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 15.96
+        },
+        {
+          "id": "flex",
+          "name": "书房 / 客卧",
+          "x": 7.6,
+          "y": 0,
+          "w": 3.6,
+          "h": 4.2,
+          "kind": "sleep",
+          "furniture": "desk",
+          "area": 15.12
+        },
+        {
+          "id": "mbath",
+          "name": "主卫",
+          "x": 14,
+          "y": 0,
+          "w": 2.4,
+          "h": 2.4,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 5.76
+        },
+        {
+          "id": "dress",
+          "name": "主卧衣帽区",
+          "x": 14,
+          "y": 2.4,
+          "w": 2.4,
+          "h": 1.8,
+          "kind": "sleep",
+          "furniture": null,
+          "area": 4.32
+        },
+        {
+          "id": "master",
+          "name": "主卧",
+          "x": 16.4,
+          "y": 0,
+          "w": 3.6,
+          "h": 4.2,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 15.12
+        },
+        {
+          "id": "hall",
+          "name": "玄关 · 卧室走廊",
+          "x": 0,
+          "y": 4.2,
+          "w": 20,
+          "h": 1.2,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 24.0
+        },
+        {
+          "id": "kitchen",
+          "name": "厨房 / 岛台",
+          "x": 0,
+          "y": 5.4,
+          "w": 4.2,
+          "h": 4.6,
+          "kind": "service",
+          "furniture": "kitchen",
+          "area": 19.32
+        },
+        {
+          "id": "dining",
+          "name": "餐厅",
+          "x": 4.2,
+          "y": 5.4,
+          "w": 4.8,
+          "h": 4.6,
+          "kind": "social",
+          "furniture": "table",
+          "area": 22.08
+        },
+        {
+          "id": "living",
+          "name": "客厅 / 阅读角",
+          "x": 9,
+          "y": 5.4,
+          "w": 11,
+          "h": 3.4,
+          "kind": "social",
+          "furniture": "sofa",
+          "area": 37.4
+        },
+        {
+          "id": "balcony",
+          "name": "景观阳台",
+          "x": 9,
+          "y": 8.8,
+          "w": 11,
+          "h": 1.2,
+          "kind": "outside",
+          "furniture": null,
+          "area": 13.2
+        },
+        {
+          "id": "bath",
+          "name": "公共卫生间",
+          "x": 11.2,
+          "y": 0,
+          "w": 2.8,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 8.4
+        },
+        {
+          "id": "laundry",
+          "name": "洗衣柜",
+          "x": 11.2,
+          "y": 3,
+          "w": 1.25,
+          "h": 1.2,
+          "kind": "service",
+          "furniture": null,
+          "area": 1.5
+        },
+        {
+          "id": "vest",
+          "name": "卫浴前室",
+          "x": 12.45,
+          "y": 3,
+          "w": 1.55,
+          "h": 1.2,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 1.86
+        }
+      ],
+      "doors": [
+        {
+          "a": "outside",
+          "b": "hall",
+          "x": 0,
+          "y": 4.8,
+          "axis": "v",
+          "width": 1.2
+        },
+        {
+          "a": "hall",
+          "b": "bed2",
+          "x": 2.8,
+          "y": 4.2,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "bed3",
+          "x": 6.6,
+          "y": 4.2,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "flex",
+          "x": 9.9,
+          "y": 4.2,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "master",
+          "x": 17.6,
+          "y": 4.2,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "master",
+          "b": "dress",
+          "x": 16.4,
+          "y": 3.25,
+          "axis": "v",
+          "width": 1.05
+        },
+        {
+          "a": "dress",
+          "b": "mbath",
+          "x": 15.2,
+          "y": 2.4,
+          "axis": "h",
+          "width": 1.05
+        },
+        {
+          "a": "hall",
+          "b": "kitchen",
+          "x": 2.2,
+          "y": 5.4,
+          "axis": "h",
+          "width": 1.4
+        },
+        {
+          "a": "hall",
+          "b": "dining",
+          "x": 6.2,
+          "y": 5.4,
+          "axis": "h",
+          "width": 2
+        },
+        {
+          "a": "hall",
+          "b": "living",
+          "x": 12,
+          "y": 5.4,
+          "axis": "h",
+          "width": 2
+        },
+        {
+          "a": "kitchen",
+          "b": "dining",
+          "x": 4.2,
+          "y": 7.3,
+          "axis": "v",
+          "width": 2
+        },
+        {
+          "a": "dining",
+          "b": "living",
+          "x": 9,
+          "y": 7.1,
+          "axis": "v",
+          "width": 2.8
+        },
+        {
+          "a": "living",
+          "b": "balcony",
+          "x": 14,
+          "y": 8.8,
+          "axis": "h",
+          "width": 3
+        },
+        {
+          "a": "hall",
+          "b": "vest",
+          "x": 13.2,
+          "y": 4.2,
+          "axis": "h",
+          "width": 1
+        },
+        {
+          "a": "vest",
+          "b": "bath",
+          "x": 13.2,
+          "y": 3,
+          "axis": "h",
+          "width": 1
+        },
+        {
+          "a": "vest",
+          "b": "laundry",
+          "x": 12.45,
+          "y": 3.6,
+          "axis": "v",
+          "width": 0.8
+        }
+      ],
+      "start": "hall",
+      "image": "home-200.png"
+    },
+    {
+      "id": "villa1",
+      "title": "03 / 庄园别墅 · 一层",
+      "subtitle": "500㎡ · 宴客 / 起居 / 客房 · 3.6m 层高",
+      "w": 25,
+      "h": 20,
+      "rooms": [
+        {
+          "id": "kitchen",
+          "name": "厨房",
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 5.6,
+          "kind": "service",
+          "furniture": "kitchen",
+          "area": 33.6
+        },
+        {
+          "id": "dining",
+          "name": "宴客餐厅",
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 8.6,
+          "kind": "social",
+          "furniture": "table",
+          "area": 51.6
+        },
+        {
+          "id": "foyer",
+          "name": "入户大厅",
+          "x": 12,
+          "y": 0,
+          "w": 7,
+          "h": 4.8,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 33.6
+        },
+        {
+          "id": "stairs",
+          "name": "双跑楼梯",
+          "x": 12,
+          "y": 4.8,
+          "w": 7,
+          "h": 3.8,
+          "kind": "circulation",
+          "furniture": "stairs",
+          "area": 26.6
+        },
+        {
+          "id": "guestbath",
+          "name": "客房卫浴",
+          "x": 19,
+          "y": 0,
+          "w": 2.5,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 7.5
+        },
+        {
+          "id": "guestdress",
+          "name": "客房衣帽区",
+          "x": 21.5,
+          "y": 0,
+          "w": 3.5,
+          "h": 3,
+          "kind": "sleep",
+          "furniture": null,
+          "area": 10.5
+        },
+        {
+          "id": "guest",
+          "name": "客房",
+          "x": 19,
+          "y": 3,
+          "w": 6,
+          "h": 5.6,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 33.6
+        },
+        {
+          "id": "hall",
+          "name": "横向主廊 · 通往南侧公共空间",
+          "x": 0,
+          "y": 8.6,
+          "w": 25,
+          "h": 2.8,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 70.0
+        },
+        {
+          "id": "living",
+          "name": "主客厅",
+          "x": 0,
+          "y": 11.4,
+          "w": 12,
+          "h": 8.6,
+          "kind": "social",
+          "furniture": "sofa",
+          "area": 103.2
+        },
+        {
+          "id": "office",
+          "name": "书房",
+          "x": 12,
+          "y": 11.4,
+          "w": 6,
+          "h": 8.6,
+          "kind": "sleep",
+          "furniture": "desk",
+          "area": 51.6
+        },
+        {
+          "id": "cinema",
+          "name": "影音室",
+          "x": 18,
+          "y": 11.4,
+          "w": 7,
+          "h": 8.6,
+          "kind": "social",
+          "furniture": "cinema",
+          "area": 60.2
+        },
+        {
+          "id": "service",
+          "name": "后勤前室",
+          "x": 2.5,
+          "y": 5.6,
+          "w": 3.5,
+          "h": 3,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 10.5
+        },
+        {
+          "id": "bath",
+          "name": "公共卫生间",
+          "x": 0,
+          "y": 5.6,
+          "w": 2.5,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 7.5
+        }
+      ],
+      "doors": [
+        {
+          "a": "outside",
+          "b": "foyer",
+          "x": 15.5,
+          "y": 0,
+          "axis": "h",
+          "width": 1.8
+        },
+        {
+          "a": "foyer",
+          "b": "stairs",
+          "x": 15.5,
+          "y": 4.8,
+          "axis": "h",
+          "width": 2.4
+        },
+        {
+          "a": "stairs",
+          "b": "hall",
+          "x": 15.5,
+          "y": 8.6,
+          "axis": "h",
+          "width": 2.4
+        },
+        {
+          "a": "kitchen",
+          "b": "dining",
+          "x": 6,
+          "y": 3,
+          "axis": "v",
+          "width": 1.8
+        },
+        {
+          "a": "hall",
+          "b": "dining",
+          "x": 9,
+          "y": 8.6,
+          "axis": "h",
+          "width": 2
+        },
+        {
+          "a": "foyer",
+          "b": "dining",
+          "x": 12,
+          "y": 2.4,
+          "axis": "v",
+          "width": 1.8
+        },
+        {
+          "a": "hall",
+          "b": "guest",
+          "x": 22,
+          "y": 8.6,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "guest",
+          "b": "guestdress",
+          "x": 23,
+          "y": 3,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "guestdress",
+          "b": "guestbath",
+          "x": 21.5,
+          "y": 1.5,
+          "axis": "v",
+          "width": 1.1
+        },
+        {
+          "a": "hall",
+          "b": "living",
+          "x": 6,
+          "y": 11.4,
+          "axis": "h",
+          "width": 3
+        },
+        {
+          "a": "hall",
+          "b": "office",
+          "x": 15,
+          "y": 11.4,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "hall",
+          "b": "cinema",
+          "x": 21.5,
+          "y": 11.4,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "living",
+          "b": "outside",
+          "x": 6,
+          "y": 20,
+          "axis": "h",
+          "width": 4
+        },
+        {
+          "a": "hall",
+          "b": "service",
+          "x": 4.2,
+          "y": 8.6,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "service",
+          "b": "kitchen",
+          "x": 4.2,
+          "y": 5.6,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "service",
+          "b": "bath",
+          "x": 2.5,
+          "y": 7.1,
+          "axis": "v",
+          "width": 1.1
+        }
+      ],
+      "start": "foyer",
+      "image": "estate-4000.png"
+    },
+    {
+      "id": "villa2",
+      "title": "03 / 庄园别墅 · 二层",
+      "subtitle": "500㎡ · 四套卧室 / 健身 / 阅读 · 3.2m 层高",
+      "w": 25,
+      "h": 20,
+      "rooms": [
+        {
+          "id": "bed2",
+          "name": "卧室套房 A",
+          "x": 0,
+          "y": 0,
+          "w": 6,
+          "h": 5.6,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 33.6
+        },
+        {
+          "id": "bed3",
+          "name": "卧室套房 B",
+          "x": 6,
+          "y": 0,
+          "w": 6,
+          "h": 5.6,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 33.6
+        },
+        {
+          "id": "lounge",
+          "name": "楼上起居厅",
+          "x": 12,
+          "y": 0,
+          "w": 7,
+          "h": 4.8,
+          "kind": "social",
+          "furniture": "sofa",
+          "area": 33.6
+        },
+        {
+          "id": "stairs",
+          "name": "双跑楼梯",
+          "x": 12,
+          "y": 4.8,
+          "w": 7,
+          "h": 3.8,
+          "kind": "circulation",
+          "furniture": "stairs",
+          "area": 26.6
+        },
+        {
+          "id": "bath4",
+          "name": "C 卫浴 / 衣帽",
+          "x": 19,
+          "y": 0,
+          "w": 6,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 18
+        },
+        {
+          "id": "bed4",
+          "name": "卧室套房 C",
+          "x": 19,
+          "y": 3,
+          "w": 6,
+          "h": 5.6,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 33.6
+        },
+        {
+          "id": "hall",
+          "name": "楼层分流走廊",
+          "x": 0,
+          "y": 8.6,
+          "w": 25,
+          "h": 2.8,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 70.0
+        },
+        {
+          "id": "master",
+          "name": "主卧 / 私享起居",
+          "x": 0,
+          "y": 11.4,
+          "w": 7.6,
+          "h": 8.6,
+          "kind": "sleep",
+          "furniture": "bed",
+          "area": 65.36
+        },
+        {
+          "id": "dress",
+          "name": "主卧衣帽间",
+          "x": 7.6,
+          "y": 11.4,
+          "w": 4.4,
+          "h": 4,
+          "kind": "sleep",
+          "furniture": null,
+          "area": 17.6
+        },
+        {
+          "id": "mbath",
+          "name": "主卫",
+          "x": 7.6,
+          "y": 15.4,
+          "w": 4.4,
+          "h": 4.6,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 20.24
+        },
+        {
+          "id": "gym",
+          "name": "健身房",
+          "x": 12,
+          "y": 11.4,
+          "w": 8,
+          "h": 8.6,
+          "kind": "social",
+          "furniture": "gym",
+          "area": 68.8
+        },
+        {
+          "id": "vest2",
+          "name": "A 前室",
+          "x": 0,
+          "y": 5.6,
+          "w": 1.8,
+          "h": 3,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 5.4
+        },
+        {
+          "id": "bath2",
+          "name": "A 卫浴 / 衣帽",
+          "x": 1.8,
+          "y": 5.6,
+          "w": 4.2,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 12.6
+        },
+        {
+          "id": "vest3",
+          "name": "B 前室",
+          "x": 6,
+          "y": 5.6,
+          "w": 1.8,
+          "h": 3,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 5.4
+        },
+        {
+          "id": "bath3",
+          "name": "B 卫浴 / 衣帽",
+          "x": 7.8,
+          "y": 5.6,
+          "w": 4.2,
+          "h": 3,
+          "kind": "service",
+          "furniture": "bath",
+          "area": 12.6
+        },
+        {
+          "id": "eastcorr",
+          "name": "东侧廊",
+          "x": 20,
+          "y": 11.4,
+          "w": 1.4,
+          "h": 8.6,
+          "kind": "circulation",
+          "furniture": null,
+          "area": 12.04
+        },
+        {
+          "id": "laundry",
+          "name": "洗衣房",
+          "x": 21.4,
+          "y": 11.4,
+          "w": 3.6,
+          "h": 4,
+          "kind": "service",
+          "furniture": null,
+          "area": 14.4
+        },
+        {
+          "id": "library",
+          "name": "家庭阅读室",
+          "x": 21.4,
+          "y": 15.4,
+          "w": 3.6,
+          "h": 4.6,
+          "kind": "social",
+          "furniture": "desk",
+          "area": 16.56
+        }
+      ],
+      "doors": [
+        {
+          "a": "stairs",
+          "b": "lounge",
+          "x": 15.5,
+          "y": 4.8,
+          "axis": "h",
+          "width": 2
+        },
+        {
+          "a": "stairs",
+          "b": "hall",
+          "x": 15.5,
+          "y": 8.6,
+          "axis": "h",
+          "width": 2.4
+        },
+        {
+          "a": "hall",
+          "b": "bed4",
+          "x": 22,
+          "y": 8.6,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "bed4",
+          "b": "bath4",
+          "x": 22,
+          "y": 3,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "hall",
+          "b": "master",
+          "x": 5.5,
+          "y": 11.4,
+          "axis": "h",
+          "width": 1.3
+        },
+        {
+          "a": "master",
+          "b": "dress",
+          "x": 7.6,
+          "y": 13.4,
+          "axis": "v",
+          "width": 1.2
+        },
+        {
+          "a": "dress",
+          "b": "mbath",
+          "x": 9.8,
+          "y": 15.4,
+          "axis": "h",
+          "width": 1.2
+        },
+        {
+          "a": "hall",
+          "b": "gym",
+          "x": 15.5,
+          "y": 11.4,
+          "axis": "h",
+          "width": 1.3
+        },
+        {
+          "a": "hall",
+          "b": "vest2",
+          "x": 0.9,
+          "y": 8.6,
+          "axis": "h",
+          "width": 1.1
+        },
+        {
+          "a": "vest2",
+          "b": "bed2",
+          "x": 0.9,
+          "y": 5.6,
+          "axis": "h",
+          "width": 1.1
+        },
+        {
+          "a": "vest2",
+          "b": "bath2",
+          "x": 1.8,
+          "y": 7.1,
+          "axis": "v",
+          "width": 1.1
+        },
+        {
+          "a": "hall",
+          "b": "vest3",
+          "x": 6.9,
+          "y": 8.6,
+          "axis": "h",
+          "width": 1.1
+        },
+        {
+          "a": "vest3",
+          "b": "bed3",
+          "x": 6.9,
+          "y": 5.6,
+          "axis": "h",
+          "width": 1.1
+        },
+        {
+          "a": "vest3",
+          "b": "bath3",
+          "x": 7.8,
+          "y": 7.1,
+          "axis": "v",
+          "width": 1.1
+        },
+        {
+          "a": "hall",
+          "b": "eastcorr",
+          "x": 20.7,
+          "y": 11.4,
+          "axis": "h",
+          "width": 1.1
+        },
+        {
+          "a": "eastcorr",
+          "b": "laundry",
+          "x": 21.4,
+          "y": 13.4,
+          "axis": "v",
+          "width": 1.1
+        },
+        {
+          "a": "eastcorr",
+          "b": "library",
+          "x": 21.4,
+          "y": 17.5,
+          "axis": "v",
+          "width": 1.1
+        }
+      ],
+      "start": "stairs",
+      "image": "estate-4000.png"
+    }
+  ],
+  "estate": {
+    "site": [80, 50],
+    "building_origin": [27.5, 8],
+    "building_footprint": [25, 20],
+    "pool": [34, 36, 12, 5]
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "checks": [
+    {
+      "floor": "home100",
+      "area": 100.0,
+      "all_rooms_connected": true,
+      "no_overlapping_zones": true,
+      "in_bounds": true,
+      "door_positions_on_shared_boundaries": true,
+      "door_count": 10,
+      "room_zone_count": 9
+    },
+    {
+      "floor": "home200",
+      "area": 200.0,
+      "all_rooms_connected": true,
+      "no_overlapping_zones": true,
+      "in_bounds": true,
+      "door_positions_on_shared_boundaries": true,
+      "door_count": 16,
+      "room_zone_count": 14
+    },
+    {
+      "floor": "villa1",
+      "area": 500.0,
+      "all_rooms_connected": true,
+      "no_overlapping_zones": true,
+      "in_bounds": true,
+      "door_positions_on_shared_boundaries": true,
+      "door_count": 16,
+      "room_zone_count": 13
+    },
+    {
+      "floor": "villa2",
+      "area": 500.0,
+      "all_rooms_connected": true,
+      "no_overlapping_zones": true,
+      "in_bounds": true,
+      "door_positions_on_shared_boundaries": true,
+      "door_count": 17,
+      "room_zone_count": 18
+    }
+  ],
+  "stairs_aligned": true,
+  "estate_site_area": 4000,
+  "villa_gross_floor_area": 1000,
+  "limitations": [
+    "区域连通性不等同于家具碰撞或门扇开启实测",
+    "面积为占位含墙统计；需白模深化",
+    "尚未实施或测试3D与VR"
+  ]
+}

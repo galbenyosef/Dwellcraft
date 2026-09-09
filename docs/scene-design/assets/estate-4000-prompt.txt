@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: architectural game scene concept image
+Primary request: Photorealistic elevated three-quarter architectural concept of a modern understated luxurious lakeside estate on a rectangular approximately 80m x 50m site (4000 sqm). In the center-north of the plot is a simple rectilinear 25m x 20m footprint TWO-storey villa, 500 sqm per floor and 1000 sqm enclosed total. Flat roof. Visually exactly two complete floors, no double-height void. Pale limestone and dark timber screens, restrained champagne metal, large proportionate glazing with furnished living space visible. Main south terrace faces the foreground 12m x 5m rectangular swimming pool. Lounge chairs, lawn, landscaped footpath, some trees at plot boundaries, rear entrance driveway. Lake and woodland form a remote backdrop OUTSIDE the plot.
+Composition/framing: Landscape 3:2 image; coherent single elevated three-quarter view showing entire house and substantial grounds. Plausible architectural proportions and clear stair scale.
+Lighting/mood: Afternoon warm raking light, realistic material detail, elegant intentional landscape.
+Constraints: Exactly two complete storeys. Modest large-private-villa massing appropriate to 1000 sqm total enclosed floor area, no extra buildings.
+Avoid: Palace, huge hotel, infinity fantasy, humans, text, labels, watermarks, UI, collage.

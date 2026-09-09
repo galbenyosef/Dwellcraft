@@ -1,0 +1,7 @@
+Use case: stylized-concept
+Asset type: original photorealistic architectural interior concept render for a game scene.
+Primary request: 200 sqm generous four-bedroom single-floor apartment; show the main living, dining, and kitchen space with well-defined zones. Refined fresh natural style, distinctly more generous and rectilinear than a compact cream apartment.
+Composition/framing: one coherent landscape 3:2 image, eye-level camera at 1.55m, natural 26mm lens, 3m ceiling. No whole floorplan. Exact sensible furniture scale and plausible construction.
+Scene/materials: pale warm-white walls, natural oak floors, soft sage-green accent upholstery only, linen and woven cane, generous low modular sofa, six-person oak dining table, side kitchen island with clear 1.1m walkways, broad south glazing and planted balcony with leafy forest canopy view. One or two plants indoors, not a jungle.
+Lighting/mood: quiet fresh lived-in sophistication, sophisticated contrast in natural sunlight, realistic material texture and contact shadows.
+Constraints: no humans, no labels, no text, no watermark, no UI, no collage.

@@ -1,0 +1,7 @@
+Use case: stylized-concept.
+Asset type: realistic 3D architectural game scene concept, one original landscape 3:2 image.
+Primary request: refined photorealistic architectural interior concept render of a 100 sqm compact Chinese three-bedroom apartment, showing the main open living/dining area only.
+Composition/framing: eye level 1.55m, wide but not fisheye, physically plausible modest 2.8m ceiling. Cream rounded 2.4m linen sofa, light oak floor, warm white plaster, low rounded coffee table, compact four-seat dining table behind/left, realistic 1m circulation. Balcony glazing at south right with urban tree view, sheer curtains, modest potted greenery, clean ceramic details.
+Lighting/mood: natural morning light, balanced realistic soft shadows.
+Materials/textures: rich tactile materials, visible linen and wood grain, not oversmoothed; architectural game art direction.
+Constraints: no humans, no labels, no text, no watermarks, no UI. NOT a whole-apartment floorplan, no collage.
