@@ -4,7 +4,7 @@
 
 **Design your home in the browser. Step inside the space you create.**
 
-[中文说明](#中文) · [English](#english) · [效果图 / Gallery](#gallery)
+[在线体验 / Play online](https://dwellcraft.vercel.app/) · [中文说明](#中文) · [English](#english) · [效果图 / Gallery](#gallery)
 
 3D 家装游戏原型 · Browser-based 3D home design game prototype
 

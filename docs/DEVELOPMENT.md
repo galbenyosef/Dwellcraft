@@ -69,3 +69,11 @@
 新增 `vercel.json`、`.vercelignore` 与 `npm run build:vercel`。Vercel 构建开启静态导出，跳过 Sites / Cloudflare 运行时插件，输出 `dist/client`；默认本地开发和 Worker 构建路径保留。
 
 已通过类型检查、lint、10项测试和静态构建。静态产物本地浏览器验证：首页和中英文切换正常，100㎡住宅加载24件默认家具，3D画布正常且无控制台错误；HTML引用资源均存在。线上部署状态另行记录，配置就绪不代表已经发布成功。
+
+### 首次 Vercel 正式发布
+
+2026-09-09 已通过 Vercel CLI 发布到 https://dwellcraft.vercel.app/ ，部署代码提交为 `af7bf77`。云端安装和构建成功；修复了Linux干净安装时缺少可选依赖锁记录的问题，未升级既有依赖版本。
+
+线上验证：首页与扫描沙发资源HTTP 200；中英文切换正常；100㎡住宅加载24件家具、324个网格，第一人称漫游眼高1.6m，控制台无错误或警告。
+
+本次为CLI直接发布。Vercel账号尚未连接GitHub登录方式，仓库自动关联未成功，因此GitHub推送不会自动触发部署；后续可继续用 `npx vercel deploy --prod --scope ryan-1d85` 发布，或在Vercel账号完成GitHub关联后启用自动部署。
