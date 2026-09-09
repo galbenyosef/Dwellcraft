@@ -1,3 +1,4 @@
+import { WalkCamera, WALK_EYE_HEIGHT, WALK_RADIUS } from './navigation';
 import { canPlaceItem } from './placement';
 import * as B from '@babylonjs/core';
 import '@babylonjs/loaders/glTF';
@@ -61,6 +62,15 @@ export class DwellEngine {
   sceneKey = '';
   lastFps = 0;
   floorMaterials: B.Material[] = [];
+  interiorLights: {
+    light: B.PointLight;
+    floor: number;
+    x: number;
+    z: number;
+    w: number;
+    d: number;
+  }[] = [];
+  ao: B.SSAO2RenderingPipeline | null = null;
   drag: null | {
     id: string;
     startX: number;
@@ -127,13 +137,13 @@ export class DwellEngine {
     this.orbit.minZ = 0.05;
     this.orbit.inertia = 0.75;
     this.orbit.attachControl(canvas, true);
-    this.walk = new B.UniversalCamera(
+    this.walk = new WalkCamera(
       'walk',
-      new B.Vector3(5, 1.65, 5),
+      new B.Vector3(5, WALK_EYE_HEIGHT + 0.03, 5),
       this.scene,
     );
     this.walk.minZ = 0.07;
-    this.walk.speed = 0.13;
+    (this.walk as WalkCamera).configure();
     this.walk.angularSensibility = 2300;
     this.walk.keysUp = [87, 38];
     this.walk.keysDown = [83, 40];
@@ -141,8 +151,7 @@ export class DwellEngine {
     this.walk.keysRight = [68, 39];
     this.walk.checkCollisions = true;
     this.walk.applyGravity = true;
-    this.walk.ellipsoid = new B.Vector3(0.22, 0.75, 0.22);
-    this.walk.ellipsoidOffset = new B.Vector3(0, -0.87, 0);
+
     this.sun = new B.DirectionalLight(
       'sun',
       new B.Vector3(-0.55, -1, 0.35),
@@ -163,6 +172,19 @@ export class DwellEngine {
     this.shadow.bias = 0.0008;
     this.shadow.normalBias = 0.025;
     this.shadow.darkness = 0.23;
+    if (B.SSAO2RenderingPipeline.IsSupported) {
+      this.ao = new B.SSAO2RenderingPipeline(
+        'interior-contact',
+        this.scene,
+        { ssaoRatio: 0.5, blurRatio: 0.5 },
+        [this.orbit, this.walk],
+      );
+      this.ao.radius = 0.35;
+      this.ao.totalStrength = 0.8;
+      this.ao.base = 0.1;
+      this.ao.samples = 8;
+      this.ao.expensiveBlur = false;
+    }
     const pipeline = new B.DefaultRenderingPipeline(
       'finish',
       true,
@@ -276,15 +298,43 @@ export class DwellEngine {
       root.rotation.y = i.rotation;
       root.scaling.setAll(i.scale);
     }
+    this.assignInteriorLights();
     this.setTime(design.time);
     this.updateVisibility();
     this.select(this.selected, false);
   }
+  assignInteriorLights() {
+    for (const { light, floor, x, z, w, d } of this.interiorLights) {
+      light.includedOnlyMeshes = this.scene.meshes.filter((m) => {
+        if (!m.material || m.name.startsWith('drop-')) return false;
+        m.computeWorldMatrix(true);
+        const p = m.getBoundingInfo().boundingBox.centerWorld;
+        return (
+          p.y >= this.base(floor) - 0.05 &&
+          p.y < this.base(floor) + 3.6 &&
+          p.x >= x - 0.13 &&
+          p.x <= x + w + 0.13 &&
+          p.z >= z - 0.13 &&
+          p.z <= z + d + 0.13
+        );
+      });
+    }
+  }
   buildArchitecture() {
+    for (const { light } of this.interiorLights) light.dispose();
+    this.interiorLights = [];
     this.wallParts = [];
     this.colliders = [];
     this.floors = [];
-    for (const m of this.floorMaterials) m.dispose(true, true);
+    for (const m of this.floorMaterials) {
+      // PBR materials share the scene's BRDF lookup texture. Never dispose it
+      // while rebuilding a floor; only release textures owned by that floor.
+      if (m instanceof B.PBRMaterial) {
+        m.albedoTexture?.dispose();
+        m.bumpTexture?.dispose();
+      } else if (m instanceof B.StandardMaterial) m.diffuseTexture?.dispose();
+      m.dispose(false, false);
+    }
     this.floorMaterials = [];
     this.shadow.getShadowMap()!.renderList = [];
     for (const e of this.extras) e.node.dispose();
@@ -301,6 +351,21 @@ export class DwellEngine {
       trim = this.mat('trim', '#e0d6c3'),
       wood = this.mat('frame', STYLES[this.design.style].wood, 0.55),
       foundation = this.mat('foundation', '#c6cbb9');
+    const featureWood = this.mat(
+      'feature-oak',
+      this.design.style === 'luxe'
+        ? '#85684e'
+        : this.design.style === 'fresh'
+          ? '#b7c6a5'
+          : '#e0c6a0',
+      0.64,
+    );
+    const featureStone = this.mat('feature-stone', '#e2d4bd', 0.5);
+    const ceilingMat = this.mat('ceiling', '#e9dfca', 0.88);
+    ceilingMat.backFaceCulling = false;
+    const warmGlow = this.mat('light-diffuser', '#fff2dc', 0.5);
+    warmGlow.emissiveColor = B.Color3.FromHexString('#ffd99b').scale(0.75);
+    const curtainMat = this.furnisher.mat('curtain', '#dbcfb6', 0.94, 0, true);
     const frames = this.mat(
         'window-frame',
         this.design.style === 'luxe' ? '#5c5547' : '#aca997',
@@ -308,7 +373,9 @@ export class DwellEngine {
         0.25,
       ),
       glass = this.mat('glass', '#bad0c9', 0.06, 0.25);
-    glass.alpha = 0.22;
+    glass.alpha = 0.09;
+    glass.metallic = 0;
+    glass.environmentIntensity = 0.2;
     glass.transparencyMode = B.PBRMaterial.PBRMATERIAL_ALPHABLEND;
     for (const [fi, f] of floorsFor(this.design.home).entries()) {
       const base = this.base(fi),
@@ -378,6 +445,14 @@ export class DwellEngine {
         floorMat.metallic = 0;
         floorMat.roughness = wet ? 0.42 : 0.7;
         floorMat.environmentIntensity = 0.6;
+        if (wet) {
+          floorMat.albedoTexture = new B.Texture(
+            '/assets/materials/marble_01-color.jpg',
+            this.scene,
+          );
+          (floorMat.albedoTexture as B.Texture).uScale = r.w / 3;
+          (floorMat.albedoTexture as B.Texture).vScale = r.h / 3;
+        }
         if (!wet && !out) {
           const tex = new B.Texture(
             '/assets/wood_floor_Diffuse.jpg',
@@ -423,9 +498,45 @@ export class DwellEngine {
           );
           ceiling.position.set(r.x + r.w / 2, base + height, r.y + r.h / 2);
           ceiling.rotation.z = Math.PI;
-          ceiling.material = wallMat;
+          ceiling.material = ceilingMat;
           ceiling.checkCollisions = true;
           mark(ceiling, fi, 'ceiling');
+          this.shadow.addShadowCaster(ceiling);
+          if (r.kind !== 'outside') {
+            const cx = r.x + r.w / 2,
+              cz = r.y + r.h / 2;
+            const light = new B.PointLight(
+              'room-light-' + fi + '-' + r.id,
+              new B.Vector3(cx, base + height - 0.35, cz),
+              this.scene,
+            );
+            light.diffuse = B.Color3.FromHexString('#ffdda6');
+            light.intensity = 0.85;
+            light.range = Math.max(r.w, r.h) * 1.4;
+            light.falloffType = B.Light.FALLOFF_STANDARD;
+            this.interiorLights.push({
+              light,
+              floor: fi,
+              x: r.x,
+              z: r.y,
+              w: r.w,
+              d: r.h,
+            });
+            for (const xx of [-1, 1]) {
+              const lamp = B.MeshBuilder.CreateCylinder(
+                'ceiling-lamp',
+                { diameter: 0.16, height: 0.035, tessellation: 16 },
+                this.scene,
+              );
+              lamp.position.set(
+                cx + xx * Math.min(1.1, r.w * 0.23),
+                base + height - 0.045,
+                cz,
+              );
+              lamp.material = warmGlow;
+              mark(lamp, fi, 'ceiling');
+            }
+          }
         }
         if (r.kind !== 'circulation' && r.w > 2.2 && r.h > 1.6) {
           const tex = new B.DynamicTexture(
@@ -445,6 +556,7 @@ export class DwellEngine {
             true,
           );
           const mat = new B.StandardMaterial('label', this.scene);
+          this.floorMaterials.push(mat);
           mat.diffuseTexture = tex;
           mat.emissiveColor = B.Color3.White();
           mat.disableLighting = true;
@@ -478,7 +590,21 @@ export class DwellEngine {
               x,
               base + seg.bottom + h / 2,
               z,
-              wallMat,
+              (() => {
+                const feature = f.rooms.find(
+                  (r) =>
+                    ['sofa', 'bed'].includes(r.furniture || '') &&
+                    w.axis === 'h' &&
+                    Math.abs(r.y - w.at) < 0.001 &&
+                    mid > r.x &&
+                    mid < r.x + r.w,
+                );
+                return feature
+                  ? this.design.style === 'luxe'
+                    ? featureStone
+                    : featureWood
+                  : wallMat;
+              })(),
               true,
             ),
             fi,
@@ -517,6 +643,39 @@ export class DwellEngine {
             skirting.isPickable = false;
           }
         }
+        for (const door of w.holes.filter((h) => h.type === 'door')) {
+          const mid = (door.from + door.to) / 2,
+            len = door.to - door.from;
+          for (const t of [door.from - 0.025, door.to + 0.025])
+            mark(
+              this.box(
+                'door-frame',
+                w.axis === 'h' ? 0.055 : 0.19,
+                door.top,
+                w.axis === 'h' ? 0.19 : 0.055,
+                w.axis === 'h' ? t : w.at,
+                base + door.top / 2,
+                w.axis === 'h' ? w.at : t,
+                wood,
+              ),
+              fi,
+              'window',
+            );
+          mark(
+            this.box(
+              'door-lintel',
+              w.axis === 'h' ? len + 0.1 : 0.19,
+              0.055,
+              w.axis === 'h' ? 0.19 : len + 0.1,
+              w.axis === 'h' ? mid : w.at,
+              base + door.top + 0.025,
+              w.axis === 'h' ? w.at : mid,
+              wood,
+            ),
+            fi,
+            'window',
+          );
+        }
         for (const hole of w.holes.filter((h) => h.type === 'window')) {
           const middle = (hole.from + hole.to) / 2,
             len = hole.to - hole.from,
@@ -538,6 +697,28 @@ export class DwellEngine {
             fi,
             'window',
           );
+          if (len > 1.2) {
+            const inward = (w.at === 0 ? 1 : -1) * 0.15;
+            for (const edge of [hole.from + 0.12, hole.to - 0.12]) {
+              const pieces: B.Mesh[] = [];
+              for (let k = 0; k < 7; k++) {
+                const t = edge + (k - 3) * 0.045;
+                const drape = this.box(
+                  'curtain-fold',
+                  w.axis === 'h' ? 0.055 : 0.055,
+                  2.36,
+                  w.axis === 'h' ? 0.055 : 0.055,
+                  w.axis === 'h' ? t : x + inward + Math.sin(k * 2) * 0.025,
+                  base + 1.22,
+                  w.axis === 'h' ? z + inward + Math.sin(k * 2) * 0.025 : t,
+                  curtainMat,
+                );
+                pieces.push(drape);
+              }
+              const merged = B.Mesh.MergeMeshes(pieces, true, true)!;
+              mark(merged, fi, 'window');
+            }
+          }
           for (const yy of [hole.bottom, hole.top])
             mark(
               this.box(
@@ -656,6 +837,37 @@ export class DwellEngine {
         this.tree(x, z, 3 + (i % 3), parent);
       }
     }
+    const sky = B.MeshBuilder.CreateSphere(
+      'sky',
+      { diameter: 380, segments: 24, sideOrientation: B.Mesh.BACKSIDE },
+      this.scene,
+    );
+    const skyMat = new B.StandardMaterial('sky', this.scene),
+      skyTex = new B.DynamicTexture(
+        'sky-gradient',
+        { width: 8, height: 256 },
+        this.scene,
+        false,
+      );
+    const ctx = skyTex.getContext(),
+      gradient = ctx.createLinearGradient(0, 0, 0, 256);
+    gradient.addColorStop(0, '#a9cad4');
+    gradient.addColorStop(0.5, '#e5e9e0');
+    gradient.addColorStop(1, '#b9c5ad');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 8, 256);
+    skyTex.update();
+    skyMat.diffuseTexture = skyTex;
+    skyMat.disableLighting = true;
+    skyMat.emissiveColor = B.Color3.White();
+    skyMat.backFaceCulling = false;
+    skyMat.disableDepthWrite = true;
+    this.floorMaterials.push(skyMat);
+    sky.material = skyMat;
+    sky.infiniteDistance = true;
+    sky.isPickable = false;
+    sky.renderingGroupId = 0;
+    mark(sky, 0, 'sky');
     this.updateVisibility();
   }
   tree(x: number, z: number, h: number, parent: B.TransformNode) {
@@ -834,9 +1046,11 @@ export class DwellEngine {
   updateVisibility() {
     const all = this.mode === 'walk' || this.xrActive;
     const fi = this.design.floor;
+    for (const { light, floor } of this.interiorLights)
+      light.setEnabled(all || floor === fi);
     for (const e of this.extras) {
       let visible = all || e.floor === fi;
-      if (e.role === 'ceiling') visible = all;
+      if (e.role === 'ceiling' || e.role === 'sky') visible = all;
       if (e.role === 'label')
         visible = !all && this.showLabels && e.floor === fi;
       if (e.role === 'window') visible = visible && all;
@@ -909,6 +1123,7 @@ export class DwellEngine {
       this.spawnWalk();
       this.scene.activeCamera = this.walk;
       this.walk.attachControl(this.canvas, true);
+      this.canvas.focus({ preventScroll: true });
       this.select(null);
     } else {
       if (document.pointerLockElement === this.canvas)
@@ -920,18 +1135,61 @@ export class DwellEngine {
     this.updateVisibility();
   }
   spawnWalk(roomId?: string) {
-    const f = floorsFor(this.design.home)[this.design.floor],
-      r = f.rooms.find((r) => r.id === (roomId || f.start)) || f.rooms[0];
+    const f = floorsFor(this.design.home)[this.design.floor];
+    const r =
+      f.rooms.find((r) => r.id === roomId) ||
+      f.rooms.find((r) => r.furniture === 'sofa') ||
+      f.rooms.find((r) => r.id === f.start) ||
+      f.rooms[0];
+    const walker: Asset = {
+      id: 'walk-probe',
+      name: 'walk',
+      kind: 'walker',
+      w: WALK_RADIUS * 2 + 0.05,
+      d: WALK_RADIUS * 2 + 0.05,
+      h: WALK_EYE_HEIGHT,
+      style: 'cream',
+      tier: 0,
+      category: '',
+    };
+    const candidates: { x: number; z: number }[] = [];
+    for (let z = r.y + 0.35; z < r.y + r.h - 0.3; z += 0.25)
+      for (let x = r.x + 0.35; x < r.x + r.w - 0.3; x += 0.25)
+        candidates.push({ x, z });
+    const goal = { x: r.x + r.w - 0.7, z: r.y + r.h - 0.85 };
+    candidates.sort(
+      (a, b) =>
+        Math.hypot(a.x - goal.x, a.z - goal.z) -
+        Math.hypot(b.x - goal.x, b.z - goal.z),
+    );
+    const p = candidates.find((p) =>
+      canPlaceItem(
+        this.design,
+        {
+          ...p,
+          y: 0,
+          rotation: 0,
+          scale: 1,
+          floor: this.design.floor,
+          id: 'walk-probe',
+          assetId: walker.id,
+        },
+        [...this.custom, walker],
+        this.colliders,
+      ),
+    ) || { x: r.x + r.w / 2, z: r.y + r.h / 2 };
+    this.walk.cameraDirection.setAll(0);
+    this.walk.cameraRotation.setAll(0);
     this.walk.position.set(
-      r.x + r.w * 0.5,
-      this.base(this.design.floor) + 1.65,
-      r.y + r.h * 0.5,
+      p.x,
+      this.base(this.design.floor) + WALK_EYE_HEIGHT + 0.03,
+      p.z,
     );
     this.walk.setTarget(
       new B.Vector3(
-        r.x + r.w * 0.5,
-        this.base(this.design.floor) + 1.55,
-        r.y + r.h + 2,
+        r.x + r.w / 2,
+        this.base(this.design.floor) + 1.2,
+        r.y + r.h * 0.4,
       ),
     );
   }
@@ -960,12 +1218,21 @@ export class DwellEngine {
       night ? '#91aed5' : sunset ? '#ffca82' : '#fff0d7',
     );
     this.sun.direction = new B.Vector3(-0.55, sunset ? -0.3 : -1, 0.35);
-    this.ambient.intensity = night ? 0.32 : 0.55;
+    this.ambient.intensity = night ? 0.18 : 0.38;
+    for (const { light } of this.interiorLights)
+      light.intensity = night ? 1.05 : sunset ? 0.8 : 0.52;
     this.scene.environmentIntensity = night ? 0.22 : 0.55;
+    const sky = this.scene.getMaterialByName(
+      'sky',
+    ) as B.StandardMaterial | null;
+    if (sky)
+      sky.emissiveColor = B.Color3.FromHexString(
+        night ? '#253950' : sunset ? '#ffd7ac' : '#ffffff',
+      );
     this.scene.clearColor = B.Color4.FromHexString(
       night ? '#263a44ff' : sunset ? '#e9dcc6ff' : '#eff0e9ff',
     );
-    this.scene.imageProcessingConfiguration.exposure = night ? 1.05 : 1.05;
+    this.scene.imageProcessingConfiguration.exposure = night ? 1.1 : 0.95;
   }
   select(id: string | null, notify = true) {
     if (id && !this.roots.has(id)) id = null;
@@ -1003,10 +1270,73 @@ export class DwellEngine {
     }
     if (notify) this.hooks.select(id);
   }
-  groundPoint(y: number) {
+  dropPreview: B.Mesh | null = null;
+  libraryDrop(a: Asset, clientX: number, clientY: number, preview = true) {
+    if (this.mode === 'walk' || this.xrActive) return null;
+    const rect = this.canvas.getBoundingClientRect();
+    if (
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom
+    ) {
+      this.clearDropPreview();
+      return null;
+    }
+    const point = this.groundPoint(
+      this.base(this.design.floor),
+      clientX - rect.left,
+      clientY - rect.top,
+    );
+    if (!point) return null;
+    const item: Item = {
+      id: uid(),
+      assetId: a.id,
+      x: this.snap ? Math.round(point.x * 10) / 10 : point.x,
+      z: this.snap ? Math.round(point.z * 10) / 10 : point.z,
+      y: 0,
+      rotation: 0,
+      scale: 1,
+      floor: this.design.floor,
+    };
+    const valid = this.canPlace(item);
+    if (preview) {
+      if (!this.dropPreview) {
+        this.dropPreview = B.MeshBuilder.CreateBox(
+          'drop-preview',
+          { size: 1 },
+          this.scene,
+        );
+        const m = new B.StandardMaterial('drop-preview', this.scene);
+        m.alpha = 0.35;
+        m.disableLighting = true;
+        this.dropPreview.material = m;
+        this.dropPreview.isPickable = false;
+      }
+      this.dropPreview.scaling.set(a.w, 0.06, a.d);
+      this.dropPreview.position.set(
+        item.x,
+        this.base(item.floor) + 0.07,
+        item.z,
+      );
+      const m = this.dropPreview.material as B.StandardMaterial;
+      m.emissiveColor = B.Color3.FromHexString(valid ? '#4b9568' : '#d4604e');
+    }
+    return valid ? item : null;
+  }
+  clearDropPreview() {
+    this.dropPreview?.material?.dispose();
+    this.dropPreview?.dispose();
+    this.dropPreview = null;
+  }
+  groundPoint(
+    y: number,
+    screenX = this.scene.pointerX,
+    screenY = this.scene.pointerY,
+  ) {
     const ray = this.scene.createPickingRay(
-      this.scene.pointerX,
-      this.scene.pointerY,
+      screenX,
+      screenY,
       B.Matrix.Identity(),
       this.scene.activeCamera,
     );
@@ -1204,6 +1534,21 @@ export class DwellEngine {
   }
 
   setQuality(q: string) {
+    if (this.ao) {
+      const manager = this.scene.postProcessRenderPipelineManager;
+      if (q === 'low')
+        manager.detachCamerasFromRenderPipeline(this.ao.name, [
+          this.orbit,
+          this.walk,
+        ]);
+      else
+        manager.attachCamerasToRenderPipeline(
+          this.ao.name,
+          [this.orbit, this.walk],
+          true,
+        );
+    }
+
     this.engine.setHardwareScalingLevel(
       q === 'low'
         ? 2.2

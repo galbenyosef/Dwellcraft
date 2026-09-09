@@ -108,18 +108,77 @@ export class Furnisher {
     const key = [name, color, roughness, metallic, fabric].join(':');
     if (this.materials.has(key)) return this.materials.get(key)!;
     const m = new B.PBRMaterial(name, this.scene);
-    m.albedoColor = B.Color3.FromHexString(color);
+    m.albedoColor = B.Color3.FromHexString(color).toLinearSpace();
     m.roughness = roughness;
     m.metallic = metallic;
     m.environmentIntensity = 0.72;
+    if (['wood', 'frame', 'feature-oak'].includes(name)) {
+      m.albedoTexture = new B.Texture(
+        '/assets/materials/oak_veneer_01-color.jpg',
+        this.scene,
+      );
+      m.albedoColor = B.Color3.Lerp(
+        B.Color3.White(),
+        B.Color3.FromHexString(color).toLinearSpace(),
+        0.22,
+      );
+    }
+    if (name === 'plaster') {
+      // Clean plaster needs subtle surface variation, not a weathered concrete photograph.
+      const pixels = new Uint8Array(128 * 128 * 3);
+      let seed = 71;
+      for (let i = 0; i < pixels.length; i += 3) {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        const tone = 246 + (seed % 10);
+        pixels[i] = tone;
+        pixels[i + 1] = tone;
+        pixels[i + 2] = tone;
+      }
+      m.albedoTexture = B.RawTexture.CreateRGBTexture(
+        pixels,
+        128,
+        128,
+        this.scene,
+        true,
+        false,
+      );
+      (m.albedoTexture as B.Texture).uScale = 8;
+      (m.albedoTexture as B.Texture).vScale = 8;
+
+      m.bumpTexture = new B.Texture(
+        '/assets/materials/white_plaster_02-normal.jpg',
+        this.scene,
+      );
+      m.bumpTexture.level = 0.085;
+    }
+    if (name === 'terrace')
+      m.albedoTexture = new B.Texture(
+        '/assets/materials/stone_tiles_02-color.jpg',
+        this.scene,
+      );
+    if (name === 'feature-stone' || name === 'bath-stone')
+      m.albedoTexture = new B.Texture(
+        '/assets/materials/marble_01-color.jpg',
+        this.scene,
+      );
     if (fabric) {
+      m.albedoTexture = new B.Texture(
+        '/assets/materials/fabric-weave.jpg',
+        this.scene,
+      );
+      (m.albedoTexture as B.Texture).uScale = 4;
+      (m.albedoTexture as B.Texture).vScale = 4;
+      m.sheen.isEnabled = true;
+      m.sheen.intensity = 0.3;
+      m.sheen.color = m.albedoColor;
+
       m.bumpTexture = new B.Texture(
         '/assets/fabric_pattern_07_nor_gl.jpg',
         this.scene,
       );
       (m.bumpTexture as B.Texture).uScale = 3;
       (m.bumpTexture as B.Texture).vScale = 3;
-      m.bumpTexture.level = 0.12;
+      m.bumpTexture.level = 0.32;
     }
     this.materials.set(key, m);
     return m;
@@ -285,7 +344,7 @@ export class Furnisher {
             0.69,
             -d / 2 + 0.26,
             cloth,
-            0.06,
+            0.09,
           ).rotation.x = -0.12;
         }
         for (const s of [-1, 1]) {

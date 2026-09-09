@@ -228,6 +228,7 @@ export default function Studio({
     [error, setError] = useState(''),
     [selected, setSelected] = useState<string | null>(null),
     [view, setView] = useState<ViewMode>('orbit'),
+    [draggingAsset, setDraggingAsset] = useState<Asset | null>(null),
     [category, setCategory] = useState('全部'),
     [query, setQuery] = useState(''),
     [filterStyle, setFilterStyle] = useState('all'),
@@ -319,6 +320,25 @@ export default function Studio({
     setSelected(item.id);
     notify('已添加 ' + a.name + '，拖动即可摆放');
     return item.id;
+  };
+  const dropFurniture = (clientX: number, clientY: number) => {
+    const a = draggingAsset;
+    if (!a || !engine.current) return;
+    engine.current.custom = assetsRef.current;
+    const item = engine.current.libraryDrop(a, clientX, clientY, false);
+    engine.current.clearDropPreview();
+    setDraggingAsset(null);
+    if (!item) {
+      notify('这里放不下这件家具，请拖到绿色提示的位置。');
+      return;
+    }
+    if (designRef.current.items.length >= 500) {
+      notify('当前作品已达500件，请先移除部分家具。');
+      return;
+    }
+    commit((d) => ({ ...d, items: [...d.items, item] }));
+    setSelected(item.id);
+    notify('已放置 ' + a.name);
   };
   const modify = (changes: Partial<Item>) => {
     const id = selectedRef.current,
@@ -451,7 +471,9 @@ export default function Studio({
   }, [view, ready]);
   useEffect(() => {
     if (ready) {
-      engine.current?.resetCamera();
+      if (engine.current?.mode === 'walk' && !engine.current.xrActive)
+        engine.current.spawnWalk();
+      else engine.current?.resetCamera();
       engine.current?.updateVisibility();
     }
   }, [design.floor, ready]);
@@ -566,6 +588,11 @@ export default function Studio({
         meshCount: engine.current?.scene.meshes.length,
         fps: engine.current?.engine.getFps(),
         camera: engine.current?.mode,
+        walkPosition: engine.current?.walk.position.asArray(),
+        effectiveEyeHeight: engine.current
+          ? 2 * engine.current.walk.ellipsoid.y -
+            engine.current.walk.ellipsoidOffset.y
+          : null,
       }),
       catalog: () => CATALOG,
       inspectInitialPlacement: () =>
@@ -855,7 +882,22 @@ export default function Studio({
                     className="asset-card"
                     key={a.id}
                     disabled={!ready || view === 'walk'}
-                    onClick={() => add(a)}
+                    draggable={ready && view !== 'walk'}
+                    onDragStart={(e) => {
+                      setDraggingAsset(a);
+                      e.dataTransfer.effectAllowed = 'copy';
+                      e.dataTransfer.setData(
+                        'application/x-dwellcraft-asset',
+                        a.id,
+                      );
+                    }}
+                    onDragEnd={() => {
+                      setDraggingAsset(null);
+                      engine.current?.clearDropPreview();
+                    }}
+                    onClick={() => {
+                      if (!draggingAsset) add(a);
+                    }}
                     aria-label={
                       '添加' +
                       a.name +
@@ -898,7 +940,7 @@ export default function Studio({
                 <Upload size={16} />
                 导入我的模型<span>GLB</span>
               </Button>
-              <p>家具全部开放，随心搭配。</p>
+              <p>拖进房间摆放，也可以点击添加。</p>
             </div>
           </>
         ) : (
@@ -927,12 +969,38 @@ export default function Studio({
           </div>
         )}
       </aside>
-      <section className="viewport">
+      <section
+        className={
+          'viewport ' +
+          (draggingAsset ? 'is-dragging ' : '') +
+          (view === 'walk' ? 'walking' : '')
+        }
+        onDragOver={(e) => {
+          if (draggingAsset) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+            engine.current?.libraryDrop(draggingAsset, e.clientX, e.clientY);
+          }
+        }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node))
+            engine.current?.clearDropPreview();
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          dropFurniture(e.clientX, e.clientY);
+        }}
+      >
         <canvas
           ref={canvas}
           aria-label="Dwellcraft 交互式3D住宅场景"
           tabIndex={0}
         />
+        {draggingAsset && (
+          <output className="drop-instruction">
+            把{draggingAsset.name}拖到房间里 · 绿色可放置，红色有遮挡
+          </output>
+        )}
         <div className="view-top">
           <div className="view-switch">
             <Tabs value={view} onValueChange={(v) => setView(v as ViewMode)}>
@@ -1075,7 +1143,7 @@ export default function Studio({
             {view === 'walk' ? (
               <>
                 <Footprints size={14} />
-                <span>W A S D 移动 · 点击画面转向 · Esc 返回</span>
+                <span>W A S D 移动 · 眼高 1.6m · 点击画面转向 · Esc 返回</span>
               </>
             ) : (
               <>

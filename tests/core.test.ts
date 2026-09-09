@@ -143,3 +143,35 @@ void test('GLB inspection accepts a self-contained mesh and rejects external res
   );
   await assert.rejects(() => inspectGLB(new Blob(['invalid'])));
 });
+
+void test('walking collision settles at a 1.6m eye height and never climbs when looking up', async () => {
+  const { NullEngine, Scene, MeshBuilder, Vector3 } =
+    await import('@babylonjs/core');
+  const { WalkCamera, WALK_EYE_HEIGHT } = await import('../lib/navigation');
+  const engine = new NullEngine(),
+    scene = new Scene(engine);
+  scene.collisionsEnabled = true;
+  scene.gravity = new Vector3(0, -0.08, 0);
+  const ground = MeshBuilder.CreateGround(
+    'floor',
+    { width: 20, height: 20 },
+    scene,
+  );
+  ground.checkCollisions = true;
+  ground.computeWorldMatrix(true);
+  const camera = new WalkCamera('test', new Vector3(0, 1.63, 0), scene);
+  camera.configure();
+  camera.checkCollisions = true;
+  camera.applyGravity = true;
+  for (let n = 0; n < 40; n++) camera._updatePosition();
+  assert.ok(
+    Math.abs(camera.position.y - WALK_EYE_HEIGHT) < 0.04,
+    `Eye height ${camera.position.y}`,
+  );
+  camera.cameraDirection.set(0.03, 0.3, 0);
+  for (let n = 0; n < 10; n++) camera._updatePosition();
+  assert.ok(camera.position.x > 0.2);
+  assert.ok(Math.abs(camera.position.y - WALK_EYE_HEIGHT) < 0.04);
+  scene.dispose();
+  engine.dispose();
+});
