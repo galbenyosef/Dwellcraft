@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { LanguageProvider } from '@/components/language';
 export const metadata: Metadata = {
   icons: { icon: '/icon.svg' },
   title: 'Dwellcraft · 住进想象',
@@ -12,7 +13,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh-CN">
-      <body>{children}</body>
+      <body>
+        <LanguageProvider>{children}</LanguageProvider>
+      </body>
     </html>
   );
 }

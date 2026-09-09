@@ -175,3 +175,40 @@ void test('walking collision settles at a 1.6m eye height and never climbs when 
   scene.dispose();
   engine.dispose();
 });
+
+void test('language preference respects a saved choice and browser fallback', async () => {
+  const { resolveLocale } = await import('../lib/i18n');
+  assert.equal(resolveLocale('en', ['zh-CN']), 'en');
+  assert.equal(resolveLocale('zh-CN', ['en-US']), 'zh-CN');
+  assert.equal(resolveLocale(null, ['en-GB']), 'en');
+  assert.equal(resolveLocale('invalid', ['zh-TW']), 'zh-CN');
+  assert.equal(resolveLocale(null, ['fr-FR']), 'zh-CN');
+});
+void test('all built-in furniture and rooms have English names without changing design data', async () => {
+  const { assetLabel, matchesAsset, translate } = await import('../lib/i18n');
+  const design = initialDesign('home100');
+  const before = JSON.stringify(design);
+  for (const asset of CATALOG) {
+    assert.doesNotMatch(assetLabel('en', asset), /[\p{Script=Han}]/u);
+    assert.equal(assetLabel('zh-CN', asset), asset.name);
+  }
+  for (const home of HOMES) {
+    assert.doesNotMatch(translate('en', home.name), /[\p{Script=Han}]/u);
+    for (const floor of floorsFor(home.id))
+      for (const room of floor.rooms)
+        assert.doesNotMatch(translate('en', room.name), /[\p{Script=Han}]/u);
+  }
+  assert.ok(matchesAsset(CATALOG[0], ' SOFA '));
+  assert.ok(matchesAsset(CATALOG[0], '沙发'));
+  const custom = { ...CATALOG[0], custom: true, name: '我的沙发 Sofa' };
+  assert.equal(assetLabel('en', custom), custom.name);
+  assert.equal(
+    translate('en', '已放置{name}', { name: custom.name }),
+    'Placed 我的沙发 Sofa',
+  );
+  assert.equal(
+    translate('zh-CN', '已放置{name}', { name: custom.name }),
+    '已放置我的沙发 Sofa',
+  );
+  assert.equal(JSON.stringify(design), before);
+});

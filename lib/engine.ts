@@ -1,3 +1,4 @@
+import { translate, type Locale } from './i18n';
 import { WalkCamera, WALK_EYE_HEIGHT, WALK_RADIUS } from './navigation';
 import { canPlaceItem } from './placement';
 import * as B from '@babylonjs/core';
@@ -59,6 +60,39 @@ export class DwellEngine {
     [];
   selection: B.LinesMesh | null = null;
   xr: B.WebXRDefaultExperience | null = null;
+  locale: Locale = 'zh-CN';
+  roomLabels: { texture: B.DynamicTexture; name: string }[] = [];
+  vrTranslations: (() => void)[] = [];
+  setLocale(locale: Locale) {
+    this.locale = locale;
+    this.roomLabels.forEach((label) => this.drawRoomLabel(label));
+    this.vrTranslations.forEach((update) => update());
+  }
+  drawRoomLabel({
+    texture,
+    name,
+  }: {
+    texture: B.DynamicTexture;
+    name: string;
+  }) {
+    const text = translate(this.locale, name);
+    const context = texture.getContext();
+    context.font = '34px Arial';
+    const size = Math.min(
+      34,
+      (34 * 480) / Math.max(context.measureText(text).width, 1),
+    );
+    context.clearRect(0, 0, 512, 96);
+    texture.drawText(
+      text,
+      null,
+      64,
+      `${size}px Arial`,
+      '#566354',
+      'transparent',
+      true,
+    );
+  }
   sceneKey = '';
   lastFps = 0;
   floorMaterials: B.Material[] = [];
@@ -321,6 +355,7 @@ export class DwellEngine {
     }
   }
   buildArchitecture() {
+    this.roomLabels = [];
     for (const { light } of this.interiorLights) light.dispose();
     this.interiorLights = [];
     this.wallParts = [];
@@ -546,15 +581,9 @@ export class DwellEngine {
             false,
           );
           tex.hasAlpha = true;
-          tex.drawText(
-            r.name,
-            null,
-            64,
-            '34px Arial',
-            '#566354',
-            'transparent',
-            true,
-          );
+          const roomLabel = { texture: tex, name: r.name };
+          this.roomLabels.push(roomLabel);
+          this.drawRoomLabel(roomLabel);
           const mat = new B.StandardMaterial('label', this.scene);
           this.floorMaterials.push(mat);
           mat.diffuseTexture = tex;
@@ -1628,7 +1657,14 @@ export class DwellEngine {
       ['添加座椅', 'add-chair'],
       ['退出 VR', 'exit'],
     ]) {
-      const button = G.Button.CreateSimpleButton(action, text);
+      const button = G.Button.CreateSimpleButton(
+        action,
+        translate(this.locale, text),
+      );
+      this.vrTranslations.push(() => {
+        if (button.textBlock)
+          button.textBlock.text = translate(this.locale, text);
+      });
       button.height = '84px';
       button.width = '90%';
       button.color = '#ffffff';
@@ -1642,6 +1678,7 @@ export class DwellEngine {
       panel.addControl(button);
     }
     this.xr.baseExperience.onStateChangedObservable.addOnce(() => {
+      this.vrTranslations = [];
       plane.dispose();
       ui.dispose();
     });

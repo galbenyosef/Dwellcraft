@@ -1515,7 +1515,7 @@ a:focus-visible {
   .header-actions {
     gap: 3px;
   }
-  .header-actions [aria-label='重做'],
+  .header-actions [data-action='redo'],
   .header-separator {
     display: none;
   }
@@ -1670,4 +1670,102 @@ a:focus-visible {
 }
 .walking .scene-caption .tiny-overline {
   display: none;
+}
+
+/* Language controls keep the existing workspace compact in either language. */
+.home-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.language-switch {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #dfe5d7;
+  border-radius: 9px;
+  background: #fafbf6;
+  color: #66805a;
+}
+.language-switch > svg {
+  margin: 0 5px;
+}
+.language-switch button {
+  padding: 0 8px;
+  height: 28px;
+  font-size: 13px;
+}
+.language-switch button[aria-pressed='true'] {
+  background: #e7eedc;
+  color: #294e39;
+}
+html[lang='en'] .home-heading h1 {
+  letter-spacing: -2px;
+}
+html[lang='en'] .home-heading h1 em {
+  display: block;
+}
+html[lang='en'] .brand span {
+  letter-spacing: 1px;
+}
+html[lang='en'] .categories {
+  gap: 5px;
+}
+html[lang='en'] .categories button {
+  padding: 5px 7px;
+}
+html[lang='en'] .asset-card strong {
+  white-space: normal;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+html[lang='en'] .asset-card > span {
+  flex-wrap: wrap;
+  row-gap: 3px;
+}
+html[lang='en'] .project-name {
+  min-width: 0;
+}
+html[lang='en'] .scene-caption strong {
+  font-size: 26px;
+}
+html[lang='en'] .input-hint {
+  max-width: calc(100% - 70px);
+}
+html[lang='en'] .input-hint span {
+  white-space: normal;
+}
+@media (max-width: 1100px) {
+  html[lang='en'] .studio-brand {
+    width: auto;
+  }
+  html[lang='en'] .studio-header {
+    gap: 15px;
+  }
+  .home-header-actions .status-pill {
+    display: none;
+  }
+}
+@media (max-width: 600px) {
+  .language-switch > svg {
+    display: none;
+  }
+  .language-switch button {
+    padding: 0 6px;
+  }
+  .home-header-actions {
+    gap: 0;
+  }
+  .studio-header {
+    gap: 5px;
+    padding: 0 8px;
+  }
+  .studio-header .header-actions {
+    gap: 3px;
+  }
+  .studio-header .header-separator {
+    display: none;
+  }
 }

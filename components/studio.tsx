@@ -1,4 +1,6 @@
 'use client';
+import { useLanguage, LanguageSwitch } from '@/components/language';
+import { assetLabel, matchesAsset } from '@/lib/i18n';
 import {
   useState,
   useEffect,
@@ -192,19 +194,21 @@ function Choice({
   options: { value: string; label: string }[];
   label: string;
 }) {
+  const { t } = useLanguage();
+  const localizedOptions = options.map((o) => ({ ...o, label: t(o.label) }));
   return (
     <Select
       value={value}
       onValueChange={(v) => {
         if (v !== null) onChange(v);
       }}
-      items={options}
+      items={localizedOptions}
     >
-      <SelectTrigger aria-label={label} className="choice">
+      <SelectTrigger aria-label={t(label)} className="choice">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        {options.map((o) => (
+        {localizedOptions.map((o) => (
           <SelectItem value={o.value} key={o.value}>
             {o.label}
           </SelectItem>
@@ -221,6 +225,7 @@ export default function Studio({
   home: HomeId;
   onExit: () => void;
 }) {
+  const { locale, t } = useLanguage();
   const [design, setDesign] = useState<Design>(() => initialDesign(home)),
     [assets, setAssets] = useState<Asset[]>([]),
     [hydrated, setHydrated] = useState(false),
@@ -241,7 +246,7 @@ export default function Studio({
     [snap, setSnap] = useState(true),
     [labels, setLabels] = useState(false),
     [quality, setQuality] = useState('medium'),
-    [toast, setToast] = useState(''),
+    [toast, setToast] = useState<{ key: string; asset?: Asset } | null>(null),
     [dialog, setDialog] = useState<'model' | 'reset' | 'help' | null>(null),
     [busy, setBusy] = useState(''),
     [side, setSide] = useState<'both' | 'left' | 'right' | 'none'>('both'),
@@ -271,10 +276,10 @@ export default function Studio({
     assetsRef.current = assets;
     selectedRef.current = selected;
   });
-  const notify = useCallback((message: string) => {
-    setToast(message);
+  const notify = useCallback((message: string, asset?: Asset) => {
+    setToast({ key: message, asset });
     if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(''), 5500);
+    toastTimer.current = setTimeout(() => setToast(null), 5500);
   }, []);
   const commit = useCallback((fn: (d: Design) => Design) => {
     const current = designRef.current,
@@ -318,7 +323,7 @@ export default function Studio({
     }
     commit((d) => ({ ...d, items: [...d.items, item] }));
     setSelected(item.id);
-    notify('已添加 ' + a.name + '，拖动即可摆放');
+    notify('已添加{name}，拖动即可摆放', a);
     return item.id;
   };
   const dropFurniture = (clientX: number, clientY: number) => {
@@ -338,7 +343,7 @@ export default function Studio({
     }
     commit((d) => ({ ...d, items: [...d.items, item] }));
     setSelected(item.id);
-    notify('已放置 ' + a.name);
+    notify('已放置{name}', a);
   };
   const modify = (changes: Partial<Item>) => {
     const id = selectedRef.current,
@@ -604,6 +609,9 @@ export default function Studio({
       delete (window as Window & { __dwellcraft?: Diagnostic }).__dwellcraft;
     };
   }, [ready]);
+  useEffect(() => {
+    if (ready) engine.current?.setLocale(locale);
+  }, [locale, ready]);
   const pickStyle = (style: DesignStyle) =>
     commit((d) => ({
       ...d,
@@ -736,7 +744,7 @@ export default function Studio({
         (category === '全部' || a.category === category) &&
         (filterStyle === 'all' || a.style === filterStyle) &&
         (tier === 'all' || a.tier === Number(tier)) &&
-        a.name.includes(query),
+        matchesAsset(a, query),
     );
   const floors = floorsFor(home),
     showLeft = side === 'both' || side === 'left',
@@ -754,7 +762,7 @@ export default function Studio({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="返回选房"
+            aria-label={t('返回选房')}
             onClick={async () => {
               if (await saveNow()) onExit();
             }}
@@ -767,18 +775,19 @@ export default function Studio({
           </span>
         </div>
         <div className="project-name">
-          <span>{currentHome.name}</span>
+          <span>{t(currentHome.name)}</span>
           <small>
-            {currentHome.area}㎡{home === 'estate' ? ' 庄园' : ''}
+            {currentHome.area}㎡{home === 'estate' ? ' ' + t('庄园') : ''}
           </small>
           <ChevronDown size={14} />
         </div>
         <div className="header-actions">
+          <LanguageSwitch />
           <Button
             variant="ghost"
             size="icon"
-            aria-label="撤销"
-            title="撤销 ⌘Z"
+            aria-label={t('撤销')}
+            title={t('撤销 ⌘Z')}
             disabled={!undoAvailable}
             onClick={() => restoreHistory()}
           >
@@ -787,7 +796,8 @@ export default function Studio({
           <Button
             variant="ghost"
             size="icon"
-            aria-label="重做"
+            aria-label={t('重做')}
+            data-action="redo"
             disabled={!redoAvailable}
             onClick={() => restoreHistory(true)}
           >
@@ -796,7 +806,7 @@ export default function Studio({
           <span className="header-separator" />
           <Button variant="ghost" onClick={() => setDialog('help')}>
             <Info size={16} />
-            <span className="wide-label">操作指南</span>
+            <span className="wide-label">{t('操作指南')}</span>
           </Button>
           <Button
             variant="outline"
@@ -804,11 +814,11 @@ export default function Studio({
             disabled={!!busy || !ready}
           >
             <Download size={16} />
-            <span className="wide-label">导出作品</span>
+            <span className="wide-label">{t('导出作品')}</span>
           </Button>
           <Button className="save-button" onClick={saveNow} disabled={!ready}>
             <Save size={15} />
-            保存
+            {t('保存')}
           </Button>
         </div>
       </header>
@@ -817,11 +827,11 @@ export default function Studio({
           <TabsList variant="line" className="library-tabs">
             <TabsTrigger value="furniture">
               <Sofa />
-              家具库
+              {t('家具库')}
             </TabsTrigger>
             <TabsTrigger value="rooms">
               <HomeIcon />
-              空间
+              {t('空间')}
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -832,13 +842,13 @@ export default function Studio({
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="寻找一件心仪的家具"
-                aria-label="搜索家具"
+                placeholder={t('寻找一件心仪的家具')}
+                aria-label={t('搜索家具')}
               />
             </div>
             <div className="library-filters">
               <Choice
-                label="家具风格"
+                label={t('家具风格')}
                 value={filterStyle}
                 onChange={setFilterStyle}
                 options={[
@@ -850,7 +860,7 @@ export default function Studio({
                 ]}
               />
               <Choice
-                label="家具等级"
+                label={t('家具等级')}
                 value={tier}
                 onChange={setTier}
                 options={[
@@ -864,15 +874,15 @@ export default function Studio({
                 <button
                   className={category === c ? 'active' : ''}
                   onClick={() => setCategory(c)}
-                  key={c}
+                  key={t(c)}
                 >
-                  {c}
+                  {t(c)}
                 </button>
               ))}
             </div>
             <div className="library-caption">
-              <span>{category}家具</span>
-              <small>{library.length} 件可用</small>
+              <span>{t(category)}</span>
+              <small>{t('{count}件可用', { count: library.length })}</small>
             </div>
             <div className="asset-grid">
               {library.map((a) => {
@@ -898,14 +908,11 @@ export default function Studio({
                     onClick={() => {
                       if (!draggingAsset) add(a);
                     }}
-                    aria-label={
-                      '添加' +
-                      a.name +
-                      ' ' +
-                      STYLES[a.style].name +
-                      ' ' +
-                      TIERS[a.tier]
-                    }
+                    aria-label={t('添加{name} · {style} · {tier}', {
+                      name: assetLabel(locale, a),
+                      style: t(STYLES[a.style].name),
+                      tier: t(TIERS[a.tier]),
+                    })}
                   >
                     <div className={'asset-preview ' + a.style}>
                       <Icon size={42} strokeWidth={1.1} />
@@ -914,10 +921,10 @@ export default function Studio({
                       </span>
                       {a.custom && <small>GLB</small>}
                     </div>
-                    <strong>{a.name}</strong>
+                    <strong>{assetLabel(locale, a)}</strong>
                     <span>
                       {a.w.toFixed(1)} × {a.d.toFixed(1)} m{' '}
-                      <i>{a.custom ? '自带' : TIERS[a.tier]}</i>
+                      <i>{t(a.custom ? '自带' : TIERS[a.tier])}</i>
                     </span>
                   </button>
                 );
@@ -925,8 +932,8 @@ export default function Studio({
               {!library.length && (
                 <div className="empty-library">
                   <Package />
-                  <p>还没有匹配的家具</p>
-                  <small>换个分类，或导入自己的模型。</small>
+                  <p>{t('还没有匹配的家具')}</p>
+                  <small>{t('换个分类，或导入自己的模型。')}</small>
                 </div>
               )}
             </div>
@@ -938,14 +945,15 @@ export default function Studio({
                 onClick={() => setDialog('model')}
               >
                 <Upload size={16} />
-                导入我的模型<span>GLB</span>
+                {t('导入我的模型')}
+                <span>GLB</span>
               </Button>
-              <p>拖进房间摆放，也可以点击添加。</p>
+              <p>{t('拖进房间摆放，也可以点击添加。')}</p>
             </div>
           </>
         ) : (
           <div className="room-list">
-            <p className="panel-note">选一个房间，靠近看看。</p>
+            <p className="panel-note">{t('选一个房间，靠近看看。')}</p>
             {floor.rooms
               .filter((r) => r.kind !== 'circulation')
               .map((r) => (
@@ -955,7 +963,7 @@ export default function Studio({
                 >
                   <HomeIcon size={18} />
                   <span>
-                    {r.name}
+                    {t(r.name)}
                     <small>
                       {r.w.toFixed(1)} × {r.h.toFixed(1)} m
                     </small>
@@ -964,7 +972,7 @@ export default function Studio({
                 </button>
               ))}
             <Button variant="outline" onClick={() => setDialog('reset')}>
-              重新布置这个家
+              {t('重新布置这个家')}
             </Button>
           </div>
         )}
@@ -993,12 +1001,14 @@ export default function Studio({
       >
         <canvas
           ref={canvas}
-          aria-label="Dwellcraft 交互式3D住宅场景"
+          aria-label={t('Dwellcraft 交互式3D住宅场景')}
           tabIndex={0}
         />
         {draggingAsset && (
           <output className="drop-instruction">
-            把{draggingAsset.name}拖到房间里 · 绿色可放置，红色有遮挡
+            {t('把{name}拖到房间里 · 绿色可放置，红色有遮挡', {
+              name: assetLabel(locale, draggingAsset),
+            })}
           </output>
         )}
         <div className="view-top">
@@ -1007,15 +1017,15 @@ export default function Studio({
               <TabsList>
                 <TabsTrigger value="orbit">
                   <Box size={15} />
-                  3D视角
+                  {t('3D视角')}
                 </TabsTrigger>
                 <TabsTrigger value="top">
                   <Grid2X2 size={15} />
-                  俯视
+                  {t('俯视')}
                 </TabsTrigger>
                 <TabsTrigger value="walk">
                   <Footprints size={15} />
-                  漫游
+                  {t('漫游')}
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1044,24 +1054,24 @@ export default function Studio({
               onClick={() => void engine.current?.enterVR()}
             >
               <Glasses size={17} />
-              进入VR
+              {t('进入VR')}
             </Button>
           </div>
         </div>
         <div className="scene-caption">
           <span className="tiny-overline">{currentHome.tag}</span>
-          <strong>{currentHome.name}</strong>
+          <strong>{t(currentHome.name)}</strong>
           <span>
             <i />
-            {STYLES[design.style].name} ·{' '}
-            {view === 'walk' ? '沉浸漫游' : '自由布置'}
+            {t(STYLES[design.style].name)} ·{' '}
+            {t(view === 'walk' ? '沉浸漫游' : '自由布置')}
           </span>
         </div>
         <div className="camera-tools">
           <Button
             variant="outline"
             size="icon"
-            aria-label="放大"
+            aria-label={t('放大')}
             onClick={() => engine.current?.zoom(-2)}
           >
             <Plus />
@@ -1069,7 +1079,7 @@ export default function Studio({
           <Button
             variant="outline"
             size="icon"
-            aria-label="缩小"
+            aria-label={t('缩小')}
             onClick={() => engine.current?.zoom(2)}
           >
             <Minus />
@@ -1077,7 +1087,7 @@ export default function Studio({
           <Button
             variant="outline"
             size="icon"
-            aria-label="重置视角"
+            aria-label={t('重置视角')}
             onClick={() => engine.current?.resetCamera()}
           >
             <Maximize2 />
@@ -1085,7 +1095,7 @@ export default function Studio({
           <Button
             variant="outline"
             size="icon"
-            aria-label="保存场景截图"
+            aria-label={t('保存场景截图')}
             onClick={() => {
               const url = engine.current?.screenshot();
               if (url) {
@@ -1102,12 +1112,14 @@ export default function Studio({
         </div>
         {selected && view !== 'walk' && (
           <div className="selection-toolbar">
-            <span>{selectedAsset?.name}</span>
+            <span>
+              {selectedAsset ? assetLabel(locale, selectedAsset) : ''}
+            </span>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="旋转家具"
-              title="旋转 R"
+              aria-label={t('旋转家具')}
+              title={t('旋转 R')}
               onClick={rotate}
             >
               <RotateCw />
@@ -1115,7 +1127,7 @@ export default function Studio({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="复制家具"
+              aria-label={t('复制家具')}
               onClick={duplicate}
             >
               <Copy />
@@ -1123,7 +1135,7 @@ export default function Studio({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="删除家具"
+              aria-label={t('删除家具')}
               onClick={remove}
             >
               <Trash2 />
@@ -1131,7 +1143,7 @@ export default function Studio({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="取消选择"
+              aria-label={t('取消选择')}
               onClick={() => setSelected(null)}
             >
               <X />
@@ -1143,18 +1155,20 @@ export default function Studio({
             {view === 'walk' ? (
               <>
                 <Footprints size={14} />
-                <span>W A S D 移动 · 眼高 1.6m · 点击画面转向 · Esc 返回</span>
+                <span>
+                  {t('W A S D 移动 · 眼高 1.6m · 点击画面转向 · Esc 返回')}
+                </span>
               </>
             ) : (
               <>
                 <MousePointer2 size={14} />
-                <span>拖动家具摆放 · 空白处旋转 · 滚轮缩放</span>
+                <span>{t('拖动家具摆放 · 空白处旋转 · 滚轮缩放')}</span>
               </>
             )}
           </div>
           <div className="panel-toggles">
             <button
-              aria-label="切换家具栏"
+              aria-label={t('切换家具栏')}
               onClick={() =>
                 setSide(
                   showLeft
@@ -1170,7 +1184,7 @@ export default function Studio({
               <PanelLeftClose size={17} />
             </button>
             <button
-              aria-label="切换属性栏"
+              aria-label={t('切换属性栏')}
               onClick={() =>
                 setSide(
                   showRight
@@ -1192,10 +1206,10 @@ export default function Studio({
             {error ? (
               <>
                 <Info />
-                <h3>暂时无法打开3D场景</h3>
-                <p>{error}</p>
+                <h3>{t('暂时无法打开3D场景')}</h3>
+                <p>{t(error)}</p>
                 <Button onClick={() => window.location.reload()}>
-                  重新加载
+                  {t('重新加载')}
                 </Button>
               </>
             ) : (
@@ -1203,8 +1217,8 @@ export default function Studio({
                 <div className="loading-mark">
                   <Box size={32} />
                 </div>
-                <h3>正在为你打开这个家</h3>
-                <p>准备材质、光线与家具</p>
+                <h3>{t('正在为你打开这个家')}</h3>
+                <p>{t('准备材质、光线与家具')}</p>
                 <span className="loading-line" />
               </>
             )}
@@ -1213,19 +1227,24 @@ export default function Studio({
         {toast && (
           <output className="toast">
             <Check size={15} />
-            {toast}
+            {t(
+              toast.key,
+              toast.asset
+                ? { name: assetLabel(locale, toast.asset) }
+                : undefined,
+            )}
           </output>
         )}
         {busy && (
           <output className="busy-note">
             <LoaderCircle className="spin" size={17} />
-            {busy}
+            {t(busy)}
           </output>
         )}
       </section>
       <aside className="properties-panel">
         <div className="panel-title">
-          <span>{item ? '家具属性' : '空间氛围'}</span>
+          <span>{t(item ? '家具属性' : '空间氛围')}</span>
           {item ? <Move size={17} /> : <Paintbrush size={17} />}
         </div>
         {item && selectedAsset ? (
@@ -1237,25 +1256,28 @@ export default function Studio({
                   return <Icon size={52} strokeWidth={1} />;
                 })()}
               </div>
-              <h3>{selectedAsset.name}</h3>
+              <h3>{assetLabel(locale, selectedAsset)}</h3>
               <p>
                 {selectedAsset.custom
-                  ? '我的模型'
-                  : STYLES[selectedAsset.style].name +
+                  ? t('我的模型')
+                  : t(STYLES[selectedAsset.style].name) +
                     ' / ' +
-                    TIERS[selectedAsset.tier]}
+                    t(TIERS[selectedAsset.tier])}
               </p>
             </div>
             <section className="property-group">
               <h4>
-                位置 <small>米</small>
+                {t('位置')}
+                <small>{t('米')}</small>
               </h4>
               <div className="position-inputs">
                 {(['x', 'z', 'y'] as const).map((key, i) => (
                   <label key={key}>
-                    <span>{['X', 'Z', '高度'][i]}</span>
+                    <span>{t(['X', 'Z', '高度'][i])}</span>
                     <Input
-                      aria-label={'家具' + key + '坐标'}
+                      aria-label={t('家具{axis}坐标', {
+                        axis: key.toUpperCase(),
+                      })}
                       key={item.id + ':' + key + ':' + item[key]}
                       type="number"
                       step="0.1"
@@ -1270,7 +1292,7 @@ export default function Studio({
                 ))}
               </div>
               <div className="rotation-label">
-                <span>旋转</span>
+                <span>{t('旋转')}</span>
                 <strong>
                   {Math.round(
                     ((((item.rotation * 180) / Math.PI) % 360) + 360) % 360,
@@ -1280,7 +1302,7 @@ export default function Studio({
               </div>
               <Slider
                 key={item.id + ':' + item.rotation}
-                aria-label="旋转角度"
+                aria-label={t('旋转角度')}
                 min={0}
                 max={360}
                 step={15}
@@ -1294,10 +1316,10 @@ export default function Studio({
               {(['rug', 'vase', 'plant', 'art'].includes(selectedAsset.kind) ||
                 selectedAsset.custom) && (
                 <div className="scale-field">
-                  <label htmlFor="furniture-scale">等比缩放</label>
+                  <label htmlFor="furniture-scale">{t('等比缩放')}</label>
                   <Input
                     id="furniture-scale"
-                    aria-label="家具缩放比例"
+                    aria-label={t('家具缩放比例')}
                     type="number"
                     min="0.1"
                     max="3"
@@ -1314,10 +1336,10 @@ export default function Studio({
             </section>
             {!selectedAsset.custom && selectedAsset.kind !== 'heritage' && (
               <section className="property-group">
-                <h4>材质颜色</h4>
+                <h4>{t('材质颜色')}</h4>
                 <ColorField
                   key={item.id + item.color}
-                  label="主色"
+                  label={t('主色')}
                   value={item.color || STYLES[selectedAsset.style].fabric}
                   onChange={(color) =>
                     commit((d) => ({
@@ -1333,7 +1355,7 @@ export default function Studio({
             <div className="property-actions">
               <Button variant="outline" onClick={duplicate}>
                 <Copy />
-                复制家具
+                {t('复制家具')}
               </Button>
               <Button
                 variant="ghost"
@@ -1341,7 +1363,7 @@ export default function Studio({
                 onClick={remove}
               >
                 <Trash2 />
-                移除家具
+                {t('移除家具')}
               </Button>
             </div>
           </>
@@ -1353,12 +1375,12 @@ export default function Studio({
                 width={1600}
                 height={1000}
                 src={'/concepts/' + currentHome.image}
-                alt={currentHome.name + '风格参考'}
+                alt={t('{name}风格参考', { name: t(currentHome.name) })}
               />
-              <span>风格参考</span>
+              <span>{t('风格参考')}</span>
             </div>
             <section className="property-group">
-              <h4>装修风格</h4>
+              <h4>{t('装修风格')}</h4>
               <div className="style-options">
                 {Object.entries(STYLES).map(([key, s]) => (
                   <button
@@ -1367,14 +1389,14 @@ export default function Studio({
                     className={design.style === key ? 'active' : ''}
                   >
                     <span style={{ background: s.fabric }} />
-                    <span>{s.name}</span>
+                    <span>{t(s.name)}</span>
                     {design.style === key && <Check size={13} />}
                   </button>
                 ))}
               </div>
             </section>
             <section className="property-group">
-              <h4>一天的光线</h4>
+              <h4>{t('一天的光线')}</h4>
               <Tabs
                 value={design.time}
                 onValueChange={(v) =>
@@ -1382,32 +1404,32 @@ export default function Studio({
                 }
               >
                 <TabsList className="time-tabs">
-                  <TabsTrigger value="day" aria-label="白天">
+                  <TabsTrigger value="day" aria-label={t('白天')}>
                     <Sun size={17} />
-                    <small>白天</small>
+                    <small>{t('白天')}</small>
                   </TabsTrigger>
-                  <TabsTrigger value="sunset" aria-label="黄昏">
+                  <TabsTrigger value="sunset" aria-label={t('黄昏')}>
                     <Sunset size={17} />
-                    <small>黄昏</small>
+                    <small>{t('黄昏')}</small>
                   </TabsTrigger>
-                  <TabsTrigger value="night" aria-label="夜晚">
+                  <TabsTrigger value="night" aria-label={t('夜晚')}>
                     <Moon size={17} />
-                    <small>夜晚</small>
+                    <small>{t('夜晚')}</small>
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
             </section>
             <section className="property-group">
-              <h4>墙面与地板</h4>
+              <h4>{t('墙面与地板')}</h4>
               <ColorField
                 key={design.wallColor}
-                label="墙面"
+                label={t('墙面')}
                 value={design.wallColor}
                 onChange={(wallColor) => commit((d) => ({ ...d, wallColor }))}
               />
               <ColorField
                 key={design.floorColor}
-                label="地板"
+                label={t('地板')}
                 value={design.floorColor}
                 onChange={(floorColor) => commit((d) => ({ ...d, floorColor }))}
               />
@@ -1415,10 +1437,11 @@ export default function Studio({
           </>
         )}
         <section className="property-group settings">
-          <h4>工作台设置</h4>
+          <h4>{t('工作台设置')}</h4>
           <label htmlFor="snap-toggle">
             <span>
-              网格吸附 <small>0.1m</small>
+              {t('网格吸附')}
+              <small>0.1m</small>
             </span>
             <Switch
               id="snap-toggle"
@@ -1427,11 +1450,11 @@ export default function Studio({
                 setSnap(v);
                 if (engine.current) engine.current.snap = v;
               }}
-              aria-label="网格吸附"
+              aria-label={t('网格吸附')}
             />
           </label>
           <label htmlFor="labels-toggle">
-            <span>房间名称</span>
+            <span>{t('房间名称')}</span>
             <Switch
               id="labels-toggle"
               checked={labels}
@@ -1442,13 +1465,13 @@ export default function Studio({
                   engine.current.updateVisibility();
                 }
               }}
-              aria-label="房间名称"
+              aria-label={t('房间名称')}
             />
           </label>
           <div className="quality-row">
-            <span>画质</span>
+            <span>{t('画质')}</span>
             <Choice
-              label="画质"
+              label={t('画质')}
               value={quality}
               onChange={(v) => {
                 setQuality(v);
@@ -1469,7 +1492,7 @@ export default function Studio({
             disabled={!!busy}
           >
             <FolderOpen size={16} />
-            导入作品包
+            {t('导入作品包')}
           </Button>
           <input
             ref={projectInput}
@@ -1483,19 +1506,21 @@ export default function Studio({
             }}
           />
           <p>
-            作品只保存在此浏览器。
+            {t('作品只保存在此浏览器。')}
             <br />
-            导出一份，带去下一台设备。
+            {t('导出一份，带去下一台设备。')}
           </p>
         </div>
       </aside>
       <footer className="studio-status">
         <span>
           <i />
-          {saveStatus}
+          {t(saveStatus)}
         </span>
         <span>
-          {design.items.filter((i) => i.floor === design.floor).length} 件家具
+          {t('{count}件家具', {
+            count: design.items.filter((i) => i.floor === design.floor).length,
+          })}
           <span className="status-divider">/</span>
           {design.floor + 1}F<span className="status-divider">/</span>
           {fps} FPS
@@ -1510,25 +1535,29 @@ export default function Studio({
       >
         <DialogContent className="studio-dialog">
           <DialogTitle>
-            {dialog === 'model'
-              ? '把喜欢的家具，带进来'
-              : dialog === 'reset'
-                ? '重新布置这个家'
-                : '让灵感，自由落地'}
+            {t(
+              dialog === 'model'
+                ? '把喜欢的家具，带进来'
+                : dialog === 'reset'
+                  ? '重新布置这个家'
+                  : '让灵感，自由落地',
+            )}
           </DialogTitle>
           <DialogDescription>
-            {dialog === 'model'
-              ? '导入自包含GLB文件，模型保存在你的浏览器中。'
-              : dialog === 'reset'
-                ? '选择空房重新开始，或恢复当前风格的样板间。此操作可以撤销。'
-                : '你可以在3D视角布置家具，或走进房间感受实际尺度。'}
+            {t(
+              dialog === 'model'
+                ? '导入自包含GLB文件，模型保存在你的浏览器中。'
+                : dialog === 'reset'
+                  ? '选择空房重新开始，或恢复当前风格的样板间。此操作可以撤销。'
+                  : '你可以在3D视角布置家具，或走进房间感受实际尺度。',
+            )}
           </DialogDescription>
           {dialog === 'model' && (
             <div className="model-dialog">
               <label className="model-drop">
                 <Upload size={30} />
-                <strong>选择 GLB 模型</strong>
-                <span>≤ 50MB · ≤ 20万三角面 · 内嵌贴图</span>
+                <strong>{t('选择 GLB 模型')}</strong>
+                <span>{t('≤ 50MB · ≤ 20万三角面 · 内嵌贴图')}</span>
                 <input
                   type="file"
                   accept=".glb"
@@ -1542,7 +1571,7 @@ export default function Studio({
               {modelDraft && (
                 <div className="model-fields">
                   <label htmlFor="model-name">
-                    家具名称
+                    {t('家具名称')}
                     <Input
                       id="model-name"
                       value={modelDraft.name}
@@ -1555,7 +1584,7 @@ export default function Studio({
                     />
                   </label>
                   <label htmlFor="model-width">
-                    实际宽度（米）
+                    {t('实际宽度（米）')}
                     <Input
                       id="model-width"
                       type="number"
@@ -1565,11 +1594,14 @@ export default function Studio({
                     />
                   </label>
                   <p>
-                    {modelDraft.triangles.toLocaleString()} 个三角面 ·{' '}
-                    {(modelDraft.file.size / 1024 / 1024).toFixed(1)} MB
+                    {t('{count}个三角面', {
+                      count: modelDraft.triangles.toLocaleString(locale),
+                    })}{' '}
+                    · {(modelDraft.file.size / 1024 / 1024).toFixed(1)} MB
                   </p>
                   <Button disabled={!!busy} onClick={confirmModel}>
-                    加入我的模型 <Plus size={17} />
+                    {t('加入我的模型')}
+                    <Plus size={17} />
                   </Button>
                 </div>
               )}
@@ -1587,7 +1619,7 @@ export default function Studio({
                 }}
               >
                 <Box />
-                从空房开始
+                {t('从空房开始')}
               </Button>
               <Button
                 onClick={() => {
@@ -1598,7 +1630,7 @@ export default function Studio({
                 }}
               >
                 <Sofa />
-                恢复样板间
+                {t('恢复样板间')}
               </Button>
             </div>
           )}
@@ -1606,7 +1638,7 @@ export default function Studio({
             <div className="help-grid">
               {[
                 ['旋转视角', '在空白处按住鼠标左键拖动'],
-                ['摆放家具', '点家具库添加，然后拖动摆放'],
+                ['摆放家具', '从家具库拖入布局，或点击添加后移动'],
                 ['旋转 / 复制', 'R 旋转 · ⌘ / Ctrl + D 复制'],
                 ['撤销 / 重做', '⌘ / Ctrl + Z · 加 Shift 重做'],
                 ['走进房间', '切换漫游，WASD移动，点击画面转向'],
@@ -1615,8 +1647,8 @@ export default function Studio({
                 ['带走作品', '导出作品包，再到另一台设备导入'],
               ].map(([a, b]) => (
                 <div key={a}>
-                  <strong>{a}</strong>
-                  <p>{b}</p>
+                  <strong>{t(a)}</strong>
+                  <p>{t(b)}</p>
                 </div>
               ))}
             </div>
