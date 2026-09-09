@@ -306,5 +306,10 @@
   "语言": "Language",
   "选择一个家，自由布置，让理想生活成为可以走进去的空间。": "Choose a home, arrange it freely and walk into your ideal living space.",
   "从家具库拖入布局，或点击添加后移动": "Drag a card into the layout, or click to add and then move it.",
-  "家具{axis}坐标": "Item {axis} coordinate"
+  "家具{axis}坐标": "Item {axis} coordinate",
+  "请先退出VR，再使用家具库。": "Exit VR before using the furniture library.",
+  "松开放置{name} · Esc取消": "Release to place {name} · Esc to cancel",
+  "移动{name}到空地 · 避开墙体与家具 · Esc取消": "Move {name} to a clear space · Avoid walls and furniture · Esc to cancel",
+  "点击或拖动家具，自动返回布置视角。": "Click or drag furniture to return to the layout view.",
+  "拖进房间摆放，或点击自动添加并定位。触屏可轻点添加。": "Drag into a room, or click to add and locate. On touchscreens, tap to add."
 }

@@ -1317,7 +1317,10 @@ export class DwellEngine {
       clientX - rect.left,
       clientY - rect.top,
     );
-    if (!point) return null;
+    if (!point) {
+      this.clearDropPreview();
+      return null;
+    }
     const item: Item = {
       id: uid(),
       assetId: a.id,
@@ -1337,19 +1340,23 @@ export class DwellEngine {
           this.scene,
         );
         const m = new B.StandardMaterial('drop-preview', this.scene);
-        m.alpha = 0.35;
+        m.alpha = 0.24;
         m.disableLighting = true;
         this.dropPreview.material = m;
         this.dropPreview.isPickable = false;
+        this.dropPreview.renderingGroupId = 1;
+        this.dropPreview.enableEdgesRendering();
+        this.dropPreview.edgesWidth = 2;
       }
-      this.dropPreview.scaling.set(a.w, 0.06, a.d);
+      this.dropPreview.scaling.set(a.w, Math.max(a.h, 0.06), a.d);
       this.dropPreview.position.set(
         item.x,
-        this.base(item.floor) + 0.07,
+        this.base(item.floor) + Math.max(a.h, 0.06) / 2 + 0.03,
         item.z,
       );
       const m = this.dropPreview.material as B.StandardMaterial;
       m.emissiveColor = B.Color3.FromHexString(valid ? '#4b9568' : '#d4604e');
+      this.dropPreview.edgesColor = B.Color4.FromColor3(m.emissiveColor, 1);
     }
     return valid ? item : null;
   }
@@ -1500,6 +1507,18 @@ export class DwellEngine {
       if (this.canPlace(item)) return { ...item };
     }
     return null;
+  }
+  focusItem(item: Item) {
+    const a = assetFor(item.assetId, this.custom);
+    this.orbit.target.set(item.x, this.base(item.floor) + item.y, item.z);
+    this.orbit.inertialPanningX = this.orbit.inertialPanningY = 0;
+    this.orbit.inertialAlphaOffset = this.orbit.inertialBetaOffset = 0;
+    this.orbit.inertialRadiusOffset = 0;
+    this.orbit.radius = Math.max(
+      8,
+      Math.max(a?.w || 1, a?.d || 1) * item.scale * 4,
+    );
+    this.updateOrtho();
   }
   zoom(delta: number) {
     this.orbit.radius = Math.max(3, Math.min(125, this.orbit.radius + delta));

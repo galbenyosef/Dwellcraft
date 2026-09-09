@@ -105,7 +105,7 @@ npm start          # 本地运行构建后的Worker
 
 | 操作 | 使用方式 |
 | --- | --- |
-| 添加家具 | 从家具库拖进3D/俯视布局，绿色可放、红色表示冲突；也可点击添加 |
+| 添加家具 | 拖入布局，绿色可放、红色表示冲突；点击自动添加并定位。漫游中操作会自动返回布置视角；触屏可轻点添加 |
 | 移动家具 | 拖动已放置家具 |
 | 调整视角 | 拖动空白处旋转，滚轮缩放 |
 | 旋转 / 复制 / 删除 | `R` / `⌘或Ctrl + D` / `Delete` |
@@ -167,7 +167,7 @@ Alternatively, sign in with the Vercel CLI and run `npx vercel --prod`. This bui
 
 | Action | Control |
 | --- | --- |
-| Add furniture | Drag a library card into the 3D/top view. Green means it fits; red means blocked. Clicking also adds an item. |
+| Add furniture | Drag into the layout (green: fits; red: blocked), or click/tap to add and locate. Adding from Walk automatically opens the layout view. |
 | Move furniture | Drag a placed item |
 | Orbit / zoom | Drag empty space / scroll |
 | Rotate / duplicate / delete | `R` / `⌘ or Ctrl + D` / `Delete` |

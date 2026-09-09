@@ -212,3 +212,76 @@ void test('all built-in furniture and rooms have English names without changing 
   );
   assert.equal(JSON.stringify(design), before);
 });
+
+void test('library drops use canvas-relative coordinates, preview the full size and reject blocked or outside drops', async () => {
+  const B = await import('@babylonjs/core');
+  const { DwellEngine } = await import('../lib/engine');
+  const engine = new B.NullEngine({
+    renderWidth: 800,
+    renderHeight: 600,
+    textureSize: 512,
+    deterministicLockstep: false,
+    lockstepMaxSteps: 4,
+  });
+  const scene = new B.Scene(engine);
+  const orbit = new B.ArcRotateCamera(
+    'test',
+    1.1,
+    0.04,
+    18,
+    new B.Vector3(5, 0.03, 5),
+    scene,
+  );
+  scene.activeCamera = orbit;
+  // Exercise the production placement methods without a browser/WebGL renderer.
+  const editor: InstanceType<typeof DwellEngine> = Object.assign(
+    Object.create(DwellEngine.prototype) as InstanceType<typeof DwellEngine>,
+    {
+      engine,
+      scene,
+      orbit,
+      design: initialDesign('home100', true),
+      custom: [],
+      colliders: [],
+      mode: 'top',
+      xrActive: false,
+      snap: true,
+      dropPreview: null,
+      canvas: {
+        getBoundingClientRect: () => ({
+          left: 272,
+          top: 68,
+          right: 1072,
+          bottom: 668,
+        }),
+      },
+    },
+  );
+  const asset = CATALOG.find((a) => a.kind === 'sofa')!;
+  try {
+    scene.render();
+    const item = editor.libraryDrop(asset, 672, 368);
+    assert.ok(item);
+    assert.equal(item.x, 5);
+    assert.equal(item.z, 5);
+    assert.equal(editor.dropPreview!.scaling.y, asset.h);
+    assert.equal(editor.dropPreview!.isPickable, false);
+    // The same pointer location used for preview must commit the same placement.
+    const committed = editor.libraryDrop(asset, 672, 368, false)!;
+    assert.equal(committed.x, item.x);
+    assert.equal(committed.z, item.z);
+    editor.design.items.push(item);
+    assert.equal(editor.libraryDrop(asset, 672, 368), null);
+    assert.equal(editor.libraryDrop(asset, 100, 368), null);
+    assert.equal(editor.dropPreview, null);
+    editor.focusItem(item);
+    assert.equal(orbit.target.x, item.x);
+    assert.equal(orbit.target.z, item.z);
+    editor.mode = 'walk';
+    assert.equal(editor.libraryDrop(asset, 672, 368), null);
+  } finally {
+    editor.clearDropPreview();
+    scene.dispose();
+    engine.dispose();
+  }
+});

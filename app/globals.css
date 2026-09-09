@@ -1627,10 +1627,10 @@ a:focus-visible {
   }
 }
 
-.asset-card[draggable='true'] {
+.asset-card:not(:disabled) {
   cursor: grab;
 }
-.asset-card[draggable='true']:active {
+.asset-card:not(:disabled):active {
   cursor: grabbing;
 }
 .drop-instruction {
@@ -1647,7 +1647,8 @@ a:focus-visible {
   white-space: nowrap;
   pointer-events: none;
 }
-.viewport.is-dragging > *:not(canvas) {
+.viewport.is-dragging > *:not(canvas),
+.viewport.is-dragging > *:not(canvas) * {
   pointer-events: none;
 }
 .input-hint {
@@ -1768,4 +1769,20 @@ html[lang='en'] .input-hint span {
   .studio-header .header-separator {
     display: none;
   }
+}
+
+.asset-card {
+  user-select: none;
+  touch-action: pan-y;
+}
+.viewport.is-dragging canvas {
+  cursor: grabbing;
+}
+.drop-instruction[data-valid='false'] {
+  background: #7b4437;
+}
+.drop-instruction {
+  max-width: calc(100% - 32px);
+  white-space: normal;
+  text-align: center;
 }

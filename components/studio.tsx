@@ -102,6 +102,7 @@ import {
   importProject,
 } from '@/lib/storage';
 import Image from 'next/image';
+import { FurnitureCard } from '@/components/furniture-card';
 import type { DwellEngine } from '@/lib/engine';
 
 type Actions = {
@@ -234,6 +235,7 @@ export default function Studio({
     [selected, setSelected] = useState<string | null>(null),
     [view, setView] = useState<ViewMode>('orbit'),
     [draggingAsset, setDraggingAsset] = useState<Asset | null>(null),
+    [dropValid, setDropValid] = useState<boolean | null>(null),
     [category, setCategory] = useState('全部'),
     [query, setQuery] = useState(''),
     [filterStyle, setFilterStyle] = useState('all'),
@@ -309,8 +311,22 @@ export default function Studio({
     engine.current?.select(null, false);
   };
 
+  const prepareEditor = () => {
+    if (!engine.current || !ready) return false;
+    if (engine.current.xrActive) {
+      notify('请先退出VR，再使用家具库。');
+      return false;
+    }
+    if (engine.current.mode === 'walk') {
+      engine.current.setMode('top');
+      setView('top');
+    }
+    return true;
+  };
   const add = (a: Asset, template: Partial<Item> = {}) => {
     if (!engine.current || !ready) return null;
+    // The VR controller has its own add action; the desktop library exits Walk.
+    if (!engine.current.xrActive && !prepareEditor()) return null;
     if (designRef.current.items.length >= 500) {
       notify('当前作品已达500件，请先移除部分家具。');
       return null;
@@ -323,12 +339,21 @@ export default function Studio({
     }
     commit((d) => ({ ...d, items: [...d.items, item] }));
     setSelected(item.id);
+    if (!engine.current.xrActive) engine.current.focusItem(item);
     notify('已添加{name}，拖动即可摆放', a);
     return item.id;
   };
-  const dropFurniture = (clientX: number, clientY: number) => {
-    const a = draggingAsset;
-    if (!a || !engine.current) return;
+  const dropFurniture = (a: Asset, clientX: number, clientY: number) => {
+    if (!engine.current) return;
+    const rect = canvas.current?.getBoundingClientRect();
+    if (
+      !rect ||
+      clientX < rect.left ||
+      clientX > rect.right ||
+      clientY < rect.top ||
+      clientY > rect.bottom
+    )
+      return;
     engine.current.custom = assetsRef.current;
     const item = engine.current.libraryDrop(a, clientX, clientY, false);
     engine.current.clearDropPreview();
@@ -472,7 +497,13 @@ export default function Studio({
     engine.current?.setDesign(design, assets);
   }, [design, assets]);
   useEffect(() => {
-    if (ready && !engine.current?.xrActive) engine.current?.setMode(view);
+    if (
+      ready &&
+      engine.current &&
+      !engine.current.xrActive &&
+      engine.current.mode !== view
+    )
+      engine.current.setMode(view);
   }, [view, ready]);
   useEffect(() => {
     if (ready) {
@@ -888,27 +919,28 @@ export default function Studio({
               {library.map((a) => {
                 const Icon = ICONS[a.kind] || Package;
                 return (
-                  <button
-                    className="asset-card"
+                  <FurnitureCard
                     key={a.id}
-                    disabled={!ready || view === 'walk'}
-                    draggable={ready && view !== 'walk'}
-                    onDragStart={(e) => {
-                      setDraggingAsset(a);
-                      e.dataTransfer.effectAllowed = 'copy';
-                      e.dataTransfer.setData(
-                        'application/x-dwellcraft-asset',
-                        a.id,
-                      );
+                    disabled={!ready}
+                    onAdd={() => {
+                      if (prepareEditor()) add(a);
                     }}
-                    onDragEnd={() => {
+                    onStart={() => {
+                      if (!prepareEditor()) return false;
+                      setDraggingAsset(a);
+                      setDropValid(null);
+                      return true;
+                    }}
+                    onMove={(x, y) => {
+                      setDropValid(!!engine.current?.libraryDrop(a, x, y));
+                    }}
+                    onDrop={(x, y) => dropFurniture(a, x, y)}
+                    onFinish={() => {
                       setDraggingAsset(null);
+                      setDropValid(null);
                       engine.current?.clearDropPreview();
                     }}
-                    onClick={() => {
-                      if (!draggingAsset) add(a);
-                    }}
-                    aria-label={t('添加{name} · {style} · {tier}', {
+                    label={t('添加{name} · {style} · {tier}', {
                       name: assetLabel(locale, a),
                       style: t(STYLES[a.style].name),
                       tier: t(TIERS[a.tier]),
@@ -926,7 +958,7 @@ export default function Studio({
                       {a.w.toFixed(1)} × {a.d.toFixed(1)} m{' '}
                       <i>{t(a.custom ? '自带' : TIERS[a.tier])}</i>
                     </span>
-                  </button>
+                  </FurnitureCard>
                 );
               })}
               {!library.length && (
@@ -948,7 +980,13 @@ export default function Studio({
                 {t('导入我的模型')}
                 <span>GLB</span>
               </Button>
-              <p>{t('拖进房间摆放，也可以点击添加。')}</p>
+              <p>
+                {t(
+                  view === 'walk'
+                    ? '点击或拖动家具，自动返回布置视角。'
+                    : '拖进房间摆放，或点击自动添加并定位。触屏可轻点添加。',
+                )}
+              </p>
             </div>
           </>
         ) : (
@@ -983,21 +1021,6 @@ export default function Studio({
           (draggingAsset ? 'is-dragging ' : '') +
           (view === 'walk' ? 'walking' : '')
         }
-        onDragOver={(e) => {
-          if (draggingAsset) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
-            engine.current?.libraryDrop(draggingAsset, e.clientX, e.clientY);
-          }
-        }}
-        onDragLeave={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node))
-            engine.current?.clearDropPreview();
-        }}
-        onDrop={(e) => {
-          e.preventDefault();
-          dropFurniture(e.clientX, e.clientY);
-        }}
       >
         <canvas
           ref={canvas}
@@ -1005,10 +1028,15 @@ export default function Studio({
           tabIndex={0}
         />
         {draggingAsset && (
-          <output className="drop-instruction">
-            {t('把{name}拖到房间里 · 绿色可放置，红色有遮挡', {
-              name: assetLabel(locale, draggingAsset),
-            })}
+          <output className="drop-instruction" data-valid={dropValid}>
+            {t(
+              dropValid
+                ? '松开放置{name} · Esc取消'
+                : '移动{name}到空地 · 避开墙体与家具 · Esc取消',
+              {
+                name: assetLabel(locale, draggingAsset),
+              },
+            )}
           </output>
         )}
         <div className="view-top">
